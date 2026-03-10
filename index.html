@@ -111,6 +111,10 @@
                 </div>
                 <h1 class="text-5xl font-black tracking-tighter title-gradient">GRANDMASTER CHESS</h1>
                 <p class="text-white/50 font-medium">Multiplayer Real-time Strategy</p>
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full mt-4">
+                    <span class="text-[10px] text-indigo-300 uppercase font-black tracking-widest">Your Rating</span>
+                    <span id="title-elo-display" class="text-sm font-mono font-bold text-white">1200</span>
+                </div>
             </div>
 
             <div class="space-y-4 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-xl">
@@ -283,12 +287,18 @@
                             </div>
                             <div>
                                 <p class="text-xs text-white/40 font-bold uppercase tracking-widest">You are playing as</p>
-                                <p id="player-role-text" class="font-bold text-white">Assigning...</p>
+                                <div class="flex items-center gap-2">
+                                    <p id="player-role-text" class="font-bold text-white">Assigning...</p>
+                                    <span id="player-elo-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-md font-mono font-bold border border-indigo-500/30">1200</span>
+                                </div>
                             </div>
                         </div>
                         <div id="opponent-status" class="text-right">
                             <p class="text-xs text-white/40 font-bold uppercase tracking-widest">Opponent</p>
-                            <p id="opponent-status-text" class="font-bold text-red-400">Offline</p>
+                            <div class="flex items-center justify-end gap-2">
+                                <span id="opponent-elo-badge" class="hidden text-[10px] bg-red-500/20 text-red-300 px-2 py-0.5 rounded-md font-mono font-bold border border-red-500/30">1200</span>
+                                <p id="opponent-status-text" class="font-bold text-red-400">Offline</p>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -383,6 +393,12 @@
                 scout: { name: 'Scout', desc: 'Can move 2 squares forward at any time.' },
                 vanguard: { name: 'Vanguard', desc: 'Can move 1 square diagonally forward (non-capture).' },
                 ghost: { name: 'Ghost', desc: 'Can leap over a piece forward.' },
+                berserker: { name: 'Berserker', desc: 'Can move 1 square sideways.' },
+                miner: { name: 'Miner', desc: 'Can move 1 square backward.' },
+                piggy: { name: 'Piggy', desc: 'Can move 1 square in any direction.' },
+                clockwork: { name: 'Clockwork', desc: 'Can move 1 square backward or sideways.' },
+                demogorgon: { name: 'Demogorgon', desc: 'Can capture 2 squares diagonally forward.' },
+                shelly: { name: 'Shelly', desc: 'Can move 2 squares forward.' },
                 gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             n: {
@@ -390,6 +406,12 @@
                 lancer: { name: 'Lancer', desc: 'Can move in 3x1 L-shape as well.' },
                 templar: { name: 'Templar', desc: 'Can move 2 squares orthogonally.' },
                 paladin: { name: 'Paladin', desc: 'Can move 1 square in any direction.' },
+                pegasus: { name: 'Pegasus', desc: 'Can move 2 squares in any direction.' },
+                centaur: { name: 'Centaur', desc: 'Can move 3 squares in any direction.' },
+                boar: { name: 'Boar', desc: 'Can charge 3 squares orthogonally.' },
+                chronos: { name: 'Chronos', desc: 'Can leap 4 squares orthogonally.' },
+                eleven: { name: 'Eleven', desc: 'Can move 2 squares diagonally.' },
+                elprimo: { name: 'El Primo', desc: 'Can leap 3 squares in any direction.' },
                 gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             b: {
@@ -397,6 +419,12 @@
                 mystic: { name: 'Mystic', desc: 'Can move 1 square orthogonally.' },
                 oracle: { name: 'Oracle', desc: 'Can jump over 1 piece diagonally.' },
                 inquisitor: { name: 'Inquisitor', desc: 'Can leap 3 squares diagonally.' },
+                monk: { name: 'Monk', desc: 'Can move 1 square orthogonally.' },
+                zealot: { name: 'Zealot', desc: 'Can move 2 squares orthogonally.' },
+                truffle: { name: 'Truffle', desc: 'Can move 1 square in any direction.' },
+                pendulum: { name: 'Pendulum', desc: 'Can leap 2 squares diagonally.' },
+                mindflayer: { name: 'Mind Flayer', desc: 'Can move 2 squares orthogonally.' },
+                piper: { name: 'Piper', desc: 'Can leap 4 squares diagonally.' },
                 gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             r: {
@@ -404,6 +432,12 @@
                 juggernaut: { name: 'Juggernaut', desc: 'Can move 1 square diagonally.' },
                 sentinel: { name: 'Sentinel', desc: 'Can leap 2 squares diagonally.' },
                 cannon: { name: 'Cannon', desc: 'Can jump over 1 piece orthogonally.' },
+                fortress: { name: 'Fortress', desc: 'Can move 1 square diagonally.' },
+                siege: { name: 'Siege', desc: 'Can move 2 squares diagonally.' },
+                ironhog: { name: 'Iron Hog', desc: 'Can move 2 squares diagonally.' },
+                timekeeper: { name: 'Timekeeper', desc: 'Can leap 3 squares orthogonally.' },
+                upsidedown: { name: 'Upside Down', desc: 'Can move through pieces orthogonally.' },
+                bull: { name: 'Bull', desc: 'Can charge 4 squares orthogonally.' },
                 gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             q: {
@@ -411,6 +445,12 @@
                 empress: { name: 'Empress', desc: 'Combines Queen + Knight moves.' },
                 goddess: { name: 'Goddess', desc: 'Queen + 2-square leap in any direction.' },
                 archon: { name: 'Archon', desc: 'Can leap 3 squares in any direction.' },
+                seraph: { name: 'Seraph', desc: 'Can move 2 squares in any direction.' },
+                avatar: { name: 'Avatar', desc: 'Can move 3 squares in any direction.' },
+                pigqueen: { name: 'Pig Queen', desc: 'Can leap 4 squares in any direction.' },
+                grandclock: { name: 'Grand Clock', desc: 'Can move 4 squares in any direction.' },
+                vecna: { name: 'Vecna', desc: 'Can leap 5 squares in any direction.' },
+                mortis: { name: 'Mortis', desc: 'Can dash 2 squares in any direction.' },
                 gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             }
         };
@@ -438,6 +478,37 @@
         let moveModeActive = false;
         let controlledSquare = null;
         let typedBuffer = "";
+        
+        // ELO System
+        let playerElo = parseInt(localStorage.getItem('chess_player_elo')) || 1200;
+        let opponentElo = 1200;
+        let eloUpdated = false;
+
+        function updateEloDisplay() {
+            const titleElo = document.getElementById('title-elo-display');
+            const playerEloBadge = document.getElementById('player-elo-badge');
+            const opponentEloBadge = document.getElementById('opponent-elo-badge');
+            
+            if (titleElo) titleElo.innerText = playerElo;
+            if (playerEloBadge) playerEloBadge.innerText = playerElo;
+            if (opponentEloBadge && opponentElo !== 1200) {
+                opponentEloBadge.innerText = opponentElo;
+                opponentEloBadge.classList.remove('hidden');
+            }
+        }
+
+        function saveElo(newElo) {
+            playerElo = Math.round(newElo);
+            localStorage.setItem('chess_player_elo', playerElo);
+            updateEloDisplay();
+        }
+
+        function calculateEloChange(playerRating, opponentRating, score, kFactor = 32) {
+            const expectedScore = 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400));
+            return kFactor * (score - expectedScore);
+        }
+
+        updateEloDisplay();
         
         let playerId = localStorage.getItem('chess_player_id') || Math.random().toString(36).substring(2, 15);
         localStorage.setItem('chess_player_id', playerId);
@@ -667,6 +738,9 @@
                         white: playerId,
                         black: null
                     },
+                    ratings: {
+                        [playerId]: playerElo
+                    },
                     skins: {
                         [playerId]: playerSkins
                     },
@@ -684,6 +758,7 @@
                     await update(gameRef, {
                         'players/black': playerId,
                         [`skins/${playerId}`]: playerSkins,
+                        [`ratings/${playerId}`]: playerElo,
                         status: 'lobby'
                     });
                     playerRole = 'b';
@@ -858,6 +933,16 @@
                         }
                     });
                     updateAbilityInfo();
+                }
+                
+                // Update ratings
+                if (data.ratings) {
+                    Object.keys(data.ratings).forEach(pid => {
+                        if (pid !== playerId) {
+                            opponentElo = data.ratings[pid];
+                        }
+                    });
+                    updateEloDisplay();
                 }
                 
                 // Update opponent status
@@ -1076,6 +1161,33 @@
                 if (r + 2 * dir >= 0 && r + 2 * dir < size && !getPiece(forward2)) {
                     specialMoves.push({ from: square, to: forward2, piece: 'p', color: piece.color });
                 }
+            } else if (piece.type === 'p' && skin === 'berserker') {
+                [[0, 1], [0, -1]].forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'p' && skin === 'miner') {
+                const dir = piece.color === 'w' ? 1 : -1;
+                addMove(r + dir, c);
+            } else if (piece.type === 'p' && skin === 'piggy') {
+                [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,1], [-1,-1]].forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'p' && skin === 'clockwork') {
+                const dir = piece.color === 'w' ? 1 : -1;
+                [[dir, 0], [0, 1], [0, -1]].forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'p' && skin === 'demogorgon') {
+                const dir = piece.color === 'w' ? -1 : 1;
+                [[2 * dir, 2], [2 * dir, -2]].forEach(([dr, dc]) => {
+                    const tr = r + dr;
+                    const tc = c + dc;
+                    if (tr >= 0 && tr < size && tc >= 0 && tc < size) {
+                        const targetSquare = String.fromCharCode(97 + tc) + (size - tr);
+                        const targetPiece = getPiece(targetSquare);
+                        if (targetPiece && targetPiece.color !== piece.color) {
+                            specialMoves.push({ from: square, to: targetSquare, piece: 'p', color: piece.color });
+                        }
+                    }
+                });
+            } else if (piece.type === 'p' && skin === 'shelly') {
+                const dir = piece.color === 'w' ? -1 : 1;
+                addMove(r + dir, c);
+                addMove(r + 2 * dir, c);
             } else if (piece.type === 'n' && skin === 'lancer') {
                 const offsets = [[3,1], [3,-1], [-3,1], [-3,-1], [1,3], [1,-3], [-1,3], [-1,-3]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
@@ -1084,6 +1196,24 @@
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'n' && skin === 'paladin') {
                 const offsets = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,1], [-1,-1]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'n' && skin === 'pegasus') {
+                const offsets = [[2,0], [-2,0], [0,2], [0,-2], [2,2], [2,-2], [-2,2], [-2,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'n' && skin === 'centaur') {
+                const offsets = [[3,0], [-3,0], [0,3], [0,-3], [3,3], [3,-3], [-3,3], [-3,-3]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'n' && skin === 'boar') {
+                const offsets = [[3,0], [-3,0], [0,3], [0,-3]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'n' && skin === 'chronos') {
+                const offsets = [[4,0], [-4,0], [0,4], [0,-4]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'n' && skin === 'eleven') {
+                const offsets = [[2,2], [2,-2], [-2,2], [-2,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'n' && skin === 'elprimo') {
+                const offsets = [[3,0], [-3,0], [0,3], [0,-3], [3,3], [3,-3], [-3,3], [-3,-3], [3,1], [3,-1], [-3,1], [-3,-1], [1,3], [1,-3], [-1,3], [-1,-3]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'b' && skin === 'mystic') {
                 const offsets = [[1,0], [-1,0], [0,1], [0,-1]];
@@ -1094,6 +1224,24 @@
             } else if (piece.type === 'b' && skin === 'inquisitor') {
                 const offsets = [[3,3], [3,-3], [-3,3], [-3,-3]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'b' && skin === 'monk') {
+                const offsets = [[1,0], [-1,0], [0,1], [0,-1]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'b' && skin === 'zealot') {
+                const offsets = [[2,0], [-2,0], [0,2], [0,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'b' && skin === 'truffle') {
+                const offsets = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,1], [-1,-1]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'b' && skin === 'pendulum') {
+                const offsets = [[2,2], [2,-2], [-2,2], [-2,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'b' && skin === 'mindflayer') {
+                const offsets = [[2,0], [-2,0], [0,2], [0,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'b' && skin === 'piper') {
+                const offsets = [[4,4], [4,-4], [-4,4], [-4,-4]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'r' && skin === 'juggernaut') {
                 const offsets = [[1,1], [1,-1], [-1,1], [-1,-1]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
@@ -1103,6 +1251,36 @@
             } else if (piece.type === 'r' && skin === 'cannon') {
                 const offsets = [[2,0], [-2,0], [0,2], [0,-2]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'r' && skin === 'fortress') {
+                const offsets = [[1,1], [1,-1], [-1,1], [-1,-1]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'r' && skin === 'siege') {
+                const offsets = [[2,2], [2,-2], [-2,2], [-2,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'r' && skin === 'ironhog') {
+                const offsets = [[2,2], [2,-2], [-2,2], [-2,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'r' && skin === 'timekeeper') {
+                const offsets = [[3,0], [-3,0], [0,3], [0,-3]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'r' && skin === 'upsidedown') {
+                // Move through pieces orthogonally
+                const directions = [[1,0], [-1,0], [0,1], [0,-1]];
+                directions.forEach(([dr, dc]) => {
+                    for (let i = 1; i < size; i++) {
+                        const tr = r + i * dr;
+                        const tc = c + i * dc;
+                        if (tr < 0 || tr >= size || tc < 0 || tc >= size) break;
+                        const targetSquare = String.fromCharCode(97 + tc) + (size - tr);
+                        const targetPiece = getPiece(targetSquare);
+                        if (!targetPiece || targetPiece.color !== piece.color) {
+                            specialMoves.push({ from: square, to: targetSquare, piece: piece.type, color: piece.color });
+                        }
+                    }
+                });
+            } else if (piece.type === 'r' && skin === 'bull') {
+                const offsets = [[4,0], [-4,0], [0,4], [0,-4]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'q' && skin === 'empress') {
                 const offsets = [[2,1], [2,-1], [-2,1], [-2,-1], [1,2], [1,-2], [-1,2], [-1,-2]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
@@ -1111,6 +1289,24 @@
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'q' && skin === 'archon') {
                 const offsets = [[3,0], [-3,0], [0,3], [0,-3], [3,3], [3,-3], [-3,3], [-3,-3], [3,1], [3,-1], [-3,1], [-3,-1], [1,3], [1,-3], [-1,3], [-1,-3]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'q' && skin === 'seraph') {
+                const offsets = [[2,0], [-2,0], [0,2], [0,-2], [2,2], [2,-2], [-2,2], [-2,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'q' && skin === 'avatar') {
+                const offsets = [[3,0], [-3,0], [0,3], [0,-3], [3,3], [3,-3], [-3,3], [-3,-3]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'q' && skin === 'pigqueen') {
+                const offsets = [[4,0], [-4,0], [0,4], [0,-4], [4,4], [4,-4], [-4,4], [-4,-4]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'q' && skin === 'grandclock') {
+                const offsets = [[4,0], [-4,0], [0,4], [0,-4], [4,4], [4,-4], [-4,4], [-4,-4]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'q' && skin === 'vecna') {
+                const offsets = [[5,0], [-5,0], [0,5], [0,-5], [5,5], [5,-5], [-5,5], [-5,-5]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'q' && skin === 'mortis') {
+                const offsets = [[2,0], [-2,0], [0,2], [0,-2], [2,2], [2,-2], [-2,2], [-2,-2]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             }
 
@@ -1181,7 +1377,17 @@
             const turn = getTurn() === 'w' ? 'White' : 'Black';
             const isMyTurn = getTurn() === playerRole;
             
-            if (gameConfig.size === 8 && game.game_over()) {
+            let isGameOver = false;
+            if (gameConfig.size === 8 || gameConfig.size === 8.1) {
+                isGameOver = game.game_over();
+            } else {
+                const pieces = Object.values(customBoard || {});
+                const whiteKing = pieces.find(p => p && p.type === 'k' && p.color === 'w');
+                const blackKing = pieces.find(p => p && p.type === 'k' && p.color === 'b');
+                isGameOver = !whiteKing || !blackKing;
+            }
+
+            if (isGameOver) {
                 statusText.innerText = 'Game Over';
                 showGameOver();
             } else {
@@ -1190,7 +1396,7 @@
 
             turnIndicator.className = `w-4 h-4 rounded-full ${getTurn() === 'w' ? 'bg-white border border-black/20' : 'bg-black border border-white/20'}`;
             
-            if (gameConfig.size === 8 && game.in_check() && !game.game_over()) {
+            if ((gameConfig.size === 8 || gameConfig.size === 8.1) && game.in_check() && !game.game_over()) {
                 checkBadge.classList.remove('hidden');
             } else {
                 checkBadge.classList.add('hidden');
@@ -1229,12 +1435,64 @@
 
         function showGameOver() {
             modal.classList.remove('hidden');
-            if (game.in_checkmate()) {
+            let score = 0.5;
+            let resultText = "";
+
+            if (gameConfig.size !== 8 && gameConfig.size !== 8.1) {
+                const pieces = Object.values(customBoard || {});
+                const whiteKing = pieces.find(p => p && p.type === 'k' && p.color === 'w');
+                const blackKing = pieces.find(p => p && p.type === 'k' && p.color === 'b');
+                
+                if (!whiteKing || !blackKing) {
+                    const winner = whiteKing ? 'w' : 'b';
+                    modalTitle.innerText = 'King Captured!';
+                    resultText = `${winner === 'w' ? 'White' : 'Black'} wins the game.`;
+                    score = playerRole === winner ? 1 : 0;
+                } else {
+                    modalTitle.innerText = 'Game Over';
+                    resultText = 'The match has concluded.';
+                    score = 0.5;
+                }
+            } else if (game.in_checkmate()) {
+                const winner = game.turn() === 'w' ? 'b' : 'w';
                 modalTitle.innerText = 'Checkmate!';
-                modalBody.innerText = `${game.turn() === 'w' ? 'Black' : 'White'} wins the game.`;
+                resultText = `${winner === 'w' ? 'White' : 'Black'} wins the game.`;
+                score = playerRole === winner ? 1 : 0;
             } else if (game.in_draw()) {
                 modalTitle.innerText = 'Draw!';
-                modalBody.innerText = game.in_stalemate() ? 'Stalemate! No legal moves left.' : 'The game ended in a draw.';
+                resultText = game.in_stalemate() ? 'Stalemate! No legal moves left.' : 'The game ended in a draw.';
+                score = 0.5;
+            } else {
+                // If called manually or other end condition
+                modalTitle.innerText = 'Game Over';
+                resultText = 'The match has concluded.';
+                score = 0.5;
+            }
+            
+            if (!eloUpdated && currentGameId) {
+                const change = calculateEloChange(playerElo, opponentElo, score);
+                const newElo = playerElo + change;
+                const diff = Math.round(change);
+                const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
+                
+                modalBody.innerHTML = `
+                    <p class="text-white/70 mb-4">${resultText}</p>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] text-white/30 uppercase font-black tracking-widest">Rating Change</span>
+                            <span class="font-mono font-bold ${diff >= 0 ? 'text-emerald-400' : 'text-red-400'}">${diffText}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-white/60">New Rating</span>
+                            <span class="text-lg font-mono font-bold text-white">${Math.round(newElo)}</span>
+                        </div>
+                    </div>
+                `;
+                
+                saveElo(newElo);
+                eloUpdated = true;
+            } else {
+                modalBody.innerText = resultText;
             }
         }
 

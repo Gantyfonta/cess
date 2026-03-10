@@ -98,6 +98,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .hidden { display: none !important; }
     </style>
 </head>
 <body class="antialiased">
@@ -161,6 +162,69 @@
         </div>
     </div>
 
+    <!-- Lobby Screen -->
+    <div id="lobby-screen" class="min-h-screen flex flex-col items-center justify-center p-4 hidden">
+        <div class="max-w-2xl w-full bg-[#2a2a2a] p-8 rounded-3xl border border-white/10 backdrop-blur-xl shadow-2xl space-y-8">
+            <div class="text-center space-y-2">
+                <h2 class="text-3xl font-black tracking-tighter title-gradient">GAME LOBBY</h2>
+                <p class="text-white/50 font-medium">Configure your match settings</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Mode Selection -->
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest">Game Mode</h3>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button id="mode-regular-btn" class="p-4 bg-white/5 border border-white/10 rounded-2xl text-left transition-all hover:bg-white/10 group">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-bold text-white group-hover:text-indigo-400">Regular Chess</span>
+                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-indigo-500 hidden"></div></div>
+                            </div>
+                            <p class="text-xs text-white/40">Standard 8x8 board, classic rules, no special abilities.</p>
+                        </button>
+                        <button id="mode-custom-btn" class="p-4 bg-white/5 border border-indigo-500/50 rounded-2xl text-left transition-all hover:bg-white/10 group active-mode">
+                            <div class="flex items-center justify-between mb-1">
+                                <span class="font-bold text-white group-hover:text-indigo-400">Custom Chess</span>
+                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-indigo-500"></div></div>
+                            </div>
+                            <p class="text-xs text-white/40">Variable board size, custom piece layouts, and special skins active.</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Custom Settings (Only visible if Custom is selected) -->
+                <div id="custom-settings" class="space-y-4">
+                    <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest">Custom Config</h3>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="text-xs text-white/60 block mb-2">Board Size</label>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button onclick="setBoardSize(6)" class="size-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">6x6</button>
+                                <button onclick="setBoardSize(8)" class="size-btn py-2 bg-indigo-500 border border-indigo-400 rounded-xl text-xs font-bold">8x8</button>
+                                <button onclick="setBoardSize(10)" class="size-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">10x10</button>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="text-xs text-white/60 block mb-2">Piece Set</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button onclick="setPieceSet('standard')" class="piece-set-btn py-2 bg-indigo-500 border border-indigo-400 rounded-xl text-xs font-bold">Standard</button>
+                                <button onclick="setPieceSet('chaos')" class="piece-set-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">Chaos</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col gap-3 pt-4">
+                <div id="lobby-status" class="text-center py-2 px-4 bg-white/5 rounded-xl border border-white/10 text-xs font-medium text-white/60">
+                    Waiting for opponent to join...
+                </div>
+                <button id="lobby-start-btn" disabled class="w-full py-4 bg-emerald-500/50 cursor-not-allowed text-white font-bold rounded-2xl transition-all flex items-center justify-center gap-2">
+                    Start Match
+                </button>
+            </div>
+        </div>
+    </div>
     <!-- Game Screen -->
     <div id="game-screen" class="min-h-screen flex flex-col hidden">
         <!-- Header -->
@@ -346,12 +410,20 @@
             return `https://chessboardjs.com/img/chesspieces/${currentPieceTheme}/${piece}.png`;
         }
 
-        const game = new Chess();
+        let game = new Chess();
+        let customBoard = null; // Used for non-8x8 boards
         let currentGameId = null;
         let playerRole = null; // 'w' or 'b'
         let selectedSquare = null;
         let lastMove = null;
         let isConfiguringLoadout = false;
+        
+        // Game Configuration
+        let gameConfig = {
+            mode: 'custom',
+            size: 8,
+            pieceSet: 'standard'
+        };
         
         // Move Cheat Mode
         let moveModeActive = false;
@@ -362,8 +434,14 @@
         localStorage.setItem('chess_player_id', playerId);
 
         const loadoutScreen = document.getElementById('loadout-screen');
+        const lobbyScreen = document.getElementById('lobby-screen');
         const loadoutOptions = document.getElementById('loadout-options');
         const startGameBtn = document.getElementById('start-game-btn');
+        const lobbyStartBtn = document.getElementById('lobby-start-btn');
+        const lobbyStatus = document.getElementById('lobby-status');
+        const customSettings = document.getElementById('custom-settings');
+        const modeRegularBtn = document.getElementById('mode-regular-btn');
+        const modeCustomBtn = document.getElementById('mode-custom-btn');
         const loadoutBackBtn = document.getElementById('loadout-back-btn');
         const loadoutTitle = document.getElementById('loadout-title');
         const loadoutSubtitle = document.getElementById('loadout-subtitle');
@@ -440,6 +518,123 @@
             });
         }
 
+        // Lobby functions
+        window.setBoardSize = (size) => {
+            if (playerRole !== 'w') return;
+            gameConfig.size = size;
+            updateLobbyUI();
+            syncLobbyConfig();
+        };
+
+        window.setPieceSet = (set) => {
+            if (playerRole !== 'w') return;
+            gameConfig.pieceSet = set;
+            updateLobbyUI();
+            syncLobbyConfig();
+        };
+
+        function setGameMode(mode) {
+            if (playerRole !== 'w') return;
+            gameConfig.mode = mode;
+            if (mode === 'regular') {
+                gameConfig.size = 8;
+                gameConfig.pieceSet = 'standard';
+            }
+            updateLobbyUI();
+            syncLobbyConfig();
+        }
+
+        async function syncLobbyConfig() {
+            if (playerRole !== 'w') return;
+            const gameRef = ref(db, 'games/' + currentGameId);
+            await update(gameRef, { config: gameConfig });
+        }
+
+        function updateLobbyUI() {
+            // Mode buttons
+            modeRegularBtn.classList.toggle('active-mode', gameConfig.mode === 'regular');
+            modeRegularBtn.classList.toggle('border-indigo-500/50', gameConfig.mode === 'regular');
+            modeCustomBtn.classList.toggle('active-mode', gameConfig.mode === 'custom');
+            modeCustomBtn.classList.toggle('border-indigo-500/50', gameConfig.mode === 'custom');
+            
+            // Radio indicators
+            const regRadio = modeRegularBtn.querySelector('.w-2');
+            const custRadio = modeCustomBtn.querySelector('.w-2');
+            if (regRadio) regRadio.classList.toggle('hidden', gameConfig.mode !== 'regular');
+            if (custRadio) custRadio.classList.toggle('hidden', gameConfig.mode !== 'custom');
+
+            // Custom settings visibility
+            customSettings.classList.toggle('hidden', gameConfig.mode === 'regular');
+            customSettings.classList.toggle('opacity-30', gameConfig.mode === 'regular');
+            customSettings.classList.toggle('pointer-events-none', gameConfig.mode === 'regular');
+
+            // Size buttons
+            document.querySelectorAll('.size-btn').forEach(btn => {
+                const size = parseInt(btn.innerText);
+                btn.classList.toggle('bg-indigo-500', gameConfig.size === size);
+                btn.classList.toggle('border-indigo-400', gameConfig.size === size);
+                btn.classList.toggle('bg-white/5', gameConfig.size !== size);
+            });
+
+            // Piece set buttons
+            document.querySelectorAll('.piece-set-btn').forEach(btn => {
+                const set = btn.innerText.toLowerCase();
+                btn.classList.toggle('bg-indigo-500', gameConfig.pieceSet === set);
+                btn.classList.toggle('border-indigo-400', gameConfig.pieceSet === set);
+                btn.classList.toggle('bg-white/5', gameConfig.pieceSet !== set);
+            });
+
+            // Guest player restrictions
+            if (playerRole !== 'w') {
+                lobbyStartBtn.disabled = true;
+                lobbyStartBtn.innerText = "Waiting for host...";
+                lobbyStartBtn.className = "w-full py-4 bg-white/5 text-white/40 font-bold rounded-2xl cursor-not-allowed border border-white/10";
+                
+                // Disable all config for guest
+                modeRegularBtn.classList.add('pointer-events-none');
+                modeCustomBtn.classList.add('pointer-events-none');
+                customSettings.classList.add('pointer-events-none');
+            }
+        }
+
+        modeRegularBtn.onclick = () => setGameMode('regular');
+        modeCustomBtn.onclick = () => setGameMode('custom');
+
+        function showLobby() {
+            loadoutScreen.classList.add('hidden');
+            lobbyScreen.classList.remove('hidden');
+            updateLobbyUI();
+        }
+
+        window.setBoardSize = (size) => {
+            if (playerRole !== 'w') return;
+            gameConfig.size = size;
+            updateLobbyInFirebase();
+        };
+
+        window.setPieceSet = (set) => {
+            if (playerRole !== 'w') return;
+            gameConfig.pieceSet = set;
+            updateLobbyInFirebase();
+        };
+
+        modeRegularBtn.onclick = () => {
+            if (playerRole !== 'w') return;
+            gameConfig.mode = 'regular';
+            updateLobbyInFirebase();
+        };
+
+        modeCustomBtn.onclick = () => {
+            if (playerRole !== 'w') return;
+            gameConfig.mode = 'custom';
+            updateLobbyInFirebase();
+        };
+
+        async function updateLobbyInFirebase() {
+            const gameRef = ref(db, 'games/' + currentGameId);
+            await update(gameRef, { config: gameConfig });
+        }
+
         startGameBtn.onclick = async () => {
             if (isConfiguringLoadout) {
                 loadoutScreen.classList.add('hidden');
@@ -462,6 +657,7 @@
                     skins: {
                         [playerId]: playerSkins
                     },
+                    config: gameConfig,
                     status: 'waiting',
                     createdAt: Date.now()
                 });
@@ -475,15 +671,90 @@
                     await update(gameRef, {
                         'players/black': playerId,
                         [`skins/${playerId}`]: playerSkins,
-                        status: 'playing'
+                        status: 'lobby'
                     });
                     playerRole = 'b';
                 }
             }
             
-            loadoutScreen.classList.add('hidden');
-            setupGameUI();
-            listenToGame();
+            showLobby();
+            listenToLobby();
+        };
+
+        function listenToLobby() {
+            const gameRef = ref(db, 'games/' + currentGameId);
+            onValue(gameRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                gameConfig = data.config || gameConfig;
+                updateLobbyUI();
+
+                if (data.players.black) {
+                    lobbyStatus.innerText = "Opponent joined! Ready to start.";
+                    lobbyStatus.className = "text-center py-2 px-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-xs font-bold text-emerald-400";
+                    if (playerRole === 'w') {
+                        lobbyStartBtn.disabled = false;
+                        lobbyStartBtn.className = "w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-emerald-500/20";
+                    }
+                }
+
+                if (data.status === 'playing') {
+                    lobbyScreen.classList.add('hidden');
+                    setupGameUI();
+                    listenToGame();
+                }
+            });
+        }
+
+        lobbyStartBtn.onclick = async () => {
+            if (playerRole !== 'w') return;
+            
+            // Initialize board based on config
+            let initialFen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+            let customInitial = null;
+
+            if (gameConfig.size !== 8) {
+                customInitial = { turn: 'w' };
+                const size = gameConfig.size;
+                const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+                
+                // Add pieces for custom sizes (simplified)
+                for (let c = 0; c < size; c++) {
+                    customInitial[`${squareNames[c]}2`] = { type: 'p', color: 'w' };
+                    customInitial[`${squareNames[c]}${size-1}`] = { type: 'p', color: 'b' };
+                }
+                // Back rank
+                const backRank = ['r', 'n', 'b', 'q', 'k', 'b', 'n', 'r', 'r', 'r'];
+                const chaosPieces = ['r', 'n', 'b', 'q', 'k', 'p'];
+                for (let c = 0; c < size; c++) {
+                    const pieceType = gameConfig.pieceSet === 'chaos' ? chaosPieces[Math.floor(Math.random() * chaosPieces.length)] : backRank[c % backRank.length];
+                    customInitial[`${squareNames[c]}1`] = { type: pieceType, color: 'w' };
+                    
+                    const blackPieceType = gameConfig.pieceSet === 'chaos' ? chaosPieces[Math.floor(Math.random() * chaosPieces.length)] : backRank[c % backRank.length];
+                    customInitial[`${squareNames[c]}${size}`] = { type: blackPieceType, color: 'b' };
+                }
+            } else if (gameConfig.pieceSet === 'chaos') {
+                // Randomize 8x8 pieces
+                const chaosPieces = ['r', 'n', 'b', 'q', 'k', 'p'];
+                const board = {};
+                const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+                for (let c = 0; c < 8; c++) {
+                    board[`${squareNames[c]}2`] = { type: 'p', color: 'w' };
+                    board[`${squareNames[c]}7`] = { type: 'p', color: 'b' };
+                    board[`${squareNames[c]}1`] = { type: chaosPieces[Math.floor(Math.random() * chaosPieces.length)], color: 'w' };
+                    board[`${squareNames[c]}8`] = { type: chaosPieces[Math.floor(Math.random() * chaosPieces.length)], color: 'b' };
+                }
+                board.turn = 'w';
+                gameConfig.size = 8.1; // Hack to force customBoard logic for 8x8 chaos
+                customInitial = board;
+            }
+            
+            const gameRef = ref(db, 'games/' + currentGameId);
+            await update(gameRef, { 
+                status: 'playing',
+                fen: gameConfig.size === 8 ? initialFen : JSON.stringify(customInitial)
+            });
         };
 
         loadoutBackBtn.onclick = () => {
@@ -549,7 +820,19 @@
                 const data = snapshot.val();
                 if (!data) return;
 
-                game.load(data.fen);
+                gameConfig = data.config || gameConfig;
+                
+                if (gameConfig.size === 8) {
+                    game.load(data.fen);
+                } else {
+                    try {
+                        customBoard = JSON.parse(data.fen);
+                    } catch(e) {
+                        // Fallback or initial state
+                        customBoard = { turn: 'w' };
+                    }
+                }
+                
                 lastMove = data.lastMove;
                 
                 // Update skins
@@ -578,18 +861,53 @@
             });
         }
 
+        function getPiece(square) {
+            if (gameConfig.size === 8) return game.get(square);
+            return customBoard ? customBoard[square] : null;
+        }
+
+        function setPiece(square, piece) {
+            if (gameConfig.size === 8) {
+                if (piece) game.put(piece, square);
+                else game.remove(square);
+            } else {
+                if (piece) customBoard[square] = piece;
+                else delete customBoard[square];
+            }
+        }
+
+        function getTurn() {
+            if (gameConfig.size === 8) return game.turn();
+            return customBoard ? customBoard.turn : 'w';
+        }
+
+        function toggleTurn() {
+            if (gameConfig.size === 8) {
+                let fen = game.fen();
+                const parts = fen.split(' ');
+                parts[1] = parts[1] === 'w' ? 'b' : 'w';
+                game.load(parts.join(' '));
+            } else {
+                customBoard.turn = customBoard.turn === 'w' ? 'b' : 'w';
+            }
+        }
+
         function createBoard() {
             boardEl.innerHTML = '';
-            const board = game.board();
-            const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+            const size = Math.floor(gameConfig.size || 8);
+            boardEl.style.gridTemplateColumns = `repeat(${size}, 1fr)`;
+            boardEl.style.gridTemplateRows = `repeat(${size}, 1fr)`;
+            
+            const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
+            const isFlipped = playerRole === 'b';
 
-            for (let r = 0; r < 8; r++) {
-                const row = playerRole === 'b' ? 7 - r : r;
-                for (let c = 0; c < 8; c++) {
-                    const col = playerRole === 'b' ? 7 - c : c;
+            for (let r = 0; r < size; r++) {
+                const row = isFlipped ? size - 1 - r : r;
+                for (let c = 0; c < size; c++) {
+                    const col = isFlipped ? size - 1 - c : c;
                     
-                    const squareName = `${squareNames[col]}${8 - row}`;
-                    const piece = board[row][col];
+                    const squareName = `${squareNames[col]}${size - row}`;
+                    const piece = getPiece(squareName);
                     const isDark = (row + col) % 2 === 1;
                     
                     const squareEl = document.createElement('div');
@@ -601,7 +919,9 @@
                     if (lastMove && (lastMove.from === squareName || lastMove.to === squareName)) {
                         squareEl.classList.add('last-move');
                     }
-                    if (game.in_check() && piece && piece.type === 'k' && piece.color === game.turn()) {
+                    
+                    // Check highlight (only for 8x8 for now)
+                    if (gameConfig.size === 8 && game.in_check() && piece && piece.type === 'k' && piece.color === game.turn()) {
                         squareEl.classList.add('check');
                     }
 
@@ -609,7 +929,7 @@
                         const pieceEl = document.createElement('div');
                         pieceEl.className = 'piece';
                         const skin = piece.color === playerRole ? playerSkins[piece.type] : opponentSkins[piece.type];
-                        const hasAbility = skin && skin !== 'classic';
+                        const hasAbility = skin && skin !== 'classic' && gameConfig.mode !== 'regular';
                         
                         pieceEl.innerHTML = `
                             <img src="${getPieceUrl(piece.color + piece.type.toUpperCase())}" class="w-full h-full object-contain" referrerPolicy="no-referrer" />
@@ -618,7 +938,7 @@
                         squareEl.appendChild(pieceEl);
                     }
 
-                    if (selectedSquare && game.turn() === playerRole) {
+                    if (selectedSquare && getTurn() === playerRole) {
                         const moves = getLegalMoves(selectedSquare);
                         const move = moves.find(m => m.to === squareName);
                         if (move) {
@@ -683,40 +1003,46 @@
 
         function getLegalMoves(square) {
             if (!square) return [];
-            const standardMoves = game.moves({ square: square, verbose: true });
-            const piece = game.get(square);
-            if (!piece || piece.color !== playerRole) return standardMoves;
+            const piece = getPiece(square);
+            if (!piece || piece.color !== playerRole) return [];
+
+            const standardMoves = gameConfig.size === 8 ? game.moves({ square: square, verbose: true }) : [];
+            
+            // If Regular mode, no special skins
+            if (gameConfig && gameConfig.mode === 'regular') return standardMoves;
 
             let skin = playerSkins[piece.type];
             if (!skin || skin === 'classic') return standardMoves;
 
-            // Gambling logic
+            // Handle Gambler skin
             if (skin === 'gambler') {
                 const otherSkins = Object.keys(SKIN_ABILITIES[piece.type]).filter(s => s !== 'classic' && s !== 'gambler');
-                // Stable random based on FEN and square
-                const seed = game.fen().length + square.charCodeAt(0) + square.charCodeAt(1);
-                skin = otherSkins[seed % otherSkins.length];
+                const fen = gameConfig.size === 8 ? game.fen() : JSON.stringify(customBoard);
+                const seed = fen + square;
+                let hash = 0;
+                for (let i = 0; i < seed.length; i++) hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+                skin = otherSkins[Math.abs(hash) % otherSkins.length];
             }
 
             const specialMoves = [];
-            const r = 8 - parseInt(square[1]);
+            const size = Math.floor(gameConfig.size || 8);
+            const r = size - parseInt(square.substring(1));
             const c = square.charCodeAt(0) - 97;
 
-            // Helper to add move if valid
             const addMove = (tr, tc) => {
-                if (tr < 0 || tr > 7 || tc < 0 || tc > 7) return;
-                const targetSquare = String.fromCharCode(97 + tc) + (8 - tr);
-                const targetPiece = game.get(targetSquare);
-                if (!targetPiece || targetPiece.color !== playerRole) {
+                if (tr < 0 || tr >= size || tc < 0 || tc >= size) return;
+                const targetSquare = String.fromCharCode(97 + tc) + (size - tr);
+                const targetPiece = getPiece(targetSquare);
+                if (!targetPiece || targetPiece.color !== piece.color) {
                     specialMoves.push({ from: square, to: targetSquare, piece: piece.type, color: piece.color });
                 }
             };
 
             if (piece.type === 'p' && skin === 'scout') {
                 const dir = piece.color === 'w' ? -1 : 1;
-                const forward1 = String.fromCharCode(97 + c) + (8 - (r + dir));
-                const forward2 = String.fromCharCode(97 + c) + (8 - (r + 2 * dir));
-                if (r + 2 * dir >= 0 && r + 2 * dir <= 7 && !game.get(forward1) && !game.get(forward2)) {
+                const forward1 = String.fromCharCode(97 + c) + (size - (r + dir));
+                const forward2 = String.fromCharCode(97 + c) + (size - (r + 2 * dir));
+                if (r + 2 * dir >= 0 && r + 2 * dir < size && !getPiece(forward1) && !getPiece(forward2)) {
                     specialMoves.push({ from: square, to: forward2, piece: 'p', color: piece.color });
                 }
             } else if (piece.type === 'p' && skin === 'vanguard') {
@@ -724,17 +1050,17 @@
                 [[dir, 1], [dir, -1]].forEach(([dr, dc]) => {
                     const tr = r + dr;
                     const tc = c + dc;
-                    if (tr >= 0 && tr <= 7 && tc >= 0 && tc <= 7) {
-                        const targetSquare = String.fromCharCode(97 + tc) + (8 - tr);
-                        if (!game.get(targetSquare)) {
+                    if (tr >= 0 && tr < size && tc >= 0 && tc < size) {
+                        const targetSquare = String.fromCharCode(97 + tc) + (size - tr);
+                        if (!getPiece(targetSquare)) {
                             specialMoves.push({ from: square, to: targetSquare, piece: 'p', color: piece.color });
                         }
                     }
                 });
             } else if (piece.type === 'p' && skin === 'ghost') {
                 const dir = piece.color === 'w' ? -1 : 1;
-                const forward2 = String.fromCharCode(97 + c) + (8 - (r + 2 * dir));
-                if (r + 2 * dir >= 0 && r + 2 * dir <= 7 && !game.get(forward2)) {
+                const forward2 = String.fromCharCode(97 + c) + (size - (r + 2 * dir));
+                if (r + 2 * dir >= 0 && r + 2 * dir < size && !getPiece(forward2)) {
                     specialMoves.push({ from: square, to: forward2, piece: 'p', color: piece.color });
                 }
             } else if (piece.type === 'n' && skin === 'lancer') {
@@ -784,11 +1110,11 @@
         }
 
         async function handleSquareClick(square) {
-            if (game.game_over() || game.turn() !== playerRole) return;
+            if (getTurn() !== playerRole) return;
 
             // Move Mode Logic
             if (moveModeActive) {
-                const piece = game.get(square);
+                const piece = getPiece(square);
                 if (piece && piece.color === playerRole) {
                     controlledSquare = square;
                     statusText.innerText = `Controlling ${square.toUpperCase()} (WASD to move, Space to release)`;
@@ -797,27 +1123,21 @@
                 }
             }
 
-            const piece = game.get(square);
+            const piece = getPiece(square);
             const moves = getLegalMoves(selectedSquare);
             const move = moves.find(m => m.to === square);
 
             if (move) {
-                // Check if it's a special move (not in standard moves)
-                const standardMoves = game.moves({ square: selectedSquare, verbose: true });
+                // Check if it's a special move
+                const standardMoves = gameConfig.size === 8 ? game.moves({ square: selectedSquare, verbose: true }) : [];
                 const isSpecial = !standardMoves.find(m => m.to === square);
 
-                if (isSpecial) {
-                    // Manually execute special move
-                    const pieceToMove = game.get(selectedSquare);
-                    game.remove(selectedSquare);
-                    game.put(pieceToMove, square);
-                    
-                    // Flip turn manually in FEN
-                    let fen = game.fen();
-                    const parts = fen.split(' ');
-                    parts[1] = parts[1] === 'w' ? 'b' : 'w';
-                    fen = parts.join(' ');
-                    game.load(fen);
+                if (isSpecial || gameConfig.size !== 8) {
+                    // Manually execute move
+                    const pieceToMove = getPiece(selectedSquare);
+                    setPiece(selectedSquare, null);
+                    setPiece(square, pieceToMove);
+                    toggleTurn();
                 } else {
                     game.move({
                         from: selectedSquare,
@@ -829,7 +1149,7 @@
                 try {
                     const gameRef = ref(db, 'games/' + currentGameId);
                     await update(gameRef, {
-                        fen: game.fen(),
+                        fen: gameConfig.size === 8 ? game.fen() : JSON.stringify(customBoard),
                         lastMove: { from: selectedSquare, to: square }
                     });
                     selectedSquare = null;
@@ -845,19 +1165,19 @@
         }
 
         function updateStatus() {
-            const turn = game.turn() === 'w' ? 'White' : 'Black';
-            const isMyTurn = game.turn() === playerRole;
+            const turn = getTurn() === 'w' ? 'White' : 'Black';
+            const isMyTurn = getTurn() === playerRole;
             
-            if (game.game_over()) {
+            if (gameConfig.size === 8 && game.game_over()) {
                 statusText.innerText = 'Game Over';
                 showGameOver();
             } else {
                 statusText.innerText = isMyTurn ? "Your Turn" : `${turn}'s Turn`;
             }
 
-            turnIndicator.className = `w-4 h-4 rounded-full ${game.turn() === 'w' ? 'bg-white border border-black/20' : 'bg-black border border-white/20'}`;
+            turnIndicator.className = `w-4 h-4 rounded-full ${getTurn() === 'w' ? 'bg-white border border-black/20' : 'bg-black border border-white/20'}`;
             
-            if (game.in_check() && !game.game_over()) {
+            if (gameConfig.size === 8 && game.in_check() && !game.game_over()) {
                 checkBadge.classList.remove('hidden');
             } else {
                 checkBadge.classList.add('hidden');
@@ -865,6 +1185,10 @@
         }
 
         function updateHistory() {
+            if (gameConfig.size !== 8) {
+                moveHistoryEl.innerHTML = '<p class="text-white/40 italic text-sm col-span-2">History not available for custom sizes.</p>';
+                return;
+            }
             const history = game.history();
             if (history.length === 0) {
                 moveHistoryEl.innerHTML = '<p class="text-white/40 italic text-sm col-span-2">No moves yet...</p>';
@@ -924,7 +1248,8 @@
             }
 
             if (moveModeActive && controlledSquare) {
-                const r = 8 - parseInt(controlledSquare[1]);
+                const size = Math.floor(gameConfig.size || 8);
+                const r = size - parseInt(controlledSquare.substring(1));
                 const c = controlledSquare.charCodeAt(0) - 97;
                 let nr = r, nc = c;
 
@@ -942,17 +1267,17 @@
                 }
 
                 if (nr !== r || nc !== c) {
-                    if (nr >= 0 && nr <= 7 && nc >= 0 && nc <= 7) {
-                        const targetSquare = String.fromCharCode(97 + nc) + (8 - nr);
-                        const pieceToMove = game.get(controlledSquare);
+                    if (nr >= 0 && nr < size && nc >= 0 && nc < size) {
+                        const targetSquare = String.fromCharCode(97 + nc) + (size - nr);
+                        const pieceToMove = getPiece(controlledSquare);
                         
                         // Force move
-                        game.remove(controlledSquare);
-                        game.put(pieceToMove, targetSquare);
+                        setPiece(controlledSquare, null);
+                        setPiece(targetSquare, pieceToMove);
                         
                         const gameRef = ref(db, 'games/' + currentGameId);
                         await update(gameRef, {
-                            fen: game.fen(),
+                            fen: gameConfig.size === 8 ? game.fen() : JSON.stringify(customBoard),
                             lastMove: { from: controlledSquare, to: targetSquare }
                         });
                         

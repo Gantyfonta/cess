@@ -31,11 +31,22 @@
             cursor: pointer;
             transition: background-color 0.2s;
         }
-        .square.light { background-color: #f0d9b5; }
-        .square.dark { background-color: #b58863; }
-        .square.selected { background-color: #ffcf8b !important; }
-        .square.last-move { background-color: rgba(255, 255, 51, 0.5) !important; }
-        .square.check { background-color: rgba(239, 68, 68, 0.8) !important; }
+        .square.light { background-color: var(--board-light, #f0d9b5); }
+        .square.dark { background-color: var(--board-dark, #b58863); }
+        .square.selected { background-color: #ffcf8b !important; opacity: 0.9; }
+        .square.last-move { background-color: rgba(255, 255, 51, 0.4) !important; }
+        .square.check { background-color: rgba(239, 68, 68, 0.6) !important; }
+        
+        .theme-dot {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: transform 0.2s, ring 0.2s;
+            border: 2px solid rgba(255,255,255,0.1);
+        }
+        .theme-dot:hover { transform: scale(1.1); }
+        .theme-dot.active { ring: 2px solid white; ring-offset: 2px; border-color: white; }
         
         .move-indicator {
             position: absolute;
@@ -183,7 +194,25 @@
 
                 <!-- Sidebar -->
                 <div class="w-full lg:w-80 flex flex-col gap-4">
-                    <div class="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 flex flex-col gap-4 h-[400px] lg:h-[600px]">
+                    <!-- Themes -->
+                    <div class="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 flex flex-col gap-4">
+                        <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest">Board Theme</h3>
+                        <div class="flex gap-3" id="board-themes">
+                            <div class="theme-dot active" style="background: linear-gradient(135deg, #f0d9b5 50%, #b58863 50%)" onclick="setBoardTheme('classic')"></div>
+                            <div class="theme-dot" style="background: linear-gradient(135deg, #f0d9b5 50%, #769656 50%)" onclick="setBoardTheme('emerald')"></div>
+                            <div class="theme-dot" style="background: linear-gradient(135deg, #dee3e6 50%, #8ca2ad 50%)" onclick="setBoardTheme('ocean')"></div>
+                            <div class="theme-dot" style="background: linear-gradient(135deg, #4b4b4b 50%, #2a2a2a 50%)" onclick="setBoardTheme('midnight')"></div>
+                        </div>
+                        
+                        <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest mt-2">Piece Style</h3>
+                        <div class="grid grid-cols-3 gap-2" id="piece-themes">
+                            <button onclick="setPieceTheme('wikipedia')" class="px-2 py-1 text-xs bg-white/10 rounded-lg hover:bg-white/20 border border-white/10 active-piece">Wikipedia</button>
+                            <button onclick="setPieceTheme('alpha')" class="px-2 py-1 text-xs bg-white/10 rounded-lg hover:bg-white/20 border border-white/10">Alpha</button>
+                            <button onclick="setPieceTheme('cburnett')" class="px-2 py-1 text-xs bg-white/10 rounded-lg hover:bg-white/20 border border-white/10">Cburnett</button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 flex flex-col gap-4 h-[300px] lg:h-[400px]">
                         <h3 class="text-xl font-bold border-b border-white/10 pb-2">Move History</h3>
                         <div id="move-history" class="flex-1 overflow-y-auto pr-2 custom-scrollbar grid grid-cols-2 gap-x-4 gap-y-2 content-start">
                             <p class="text-white/40 italic text-sm col-span-2">No moves yet...</p>
@@ -225,20 +254,19 @@
         const db = getDatabase(app);
 
         // Chess Logic
-        const PIECES = {
-            wP: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wP.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            wN: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wN.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            wB: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wB.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            wR: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wR.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            wQ: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wQ.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            wK: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wK.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            bP: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bP.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            bN: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bN.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            bB: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bB.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            bR: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bR.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            bQ: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bQ.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
-            bK: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bK.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+        const BOARD_THEMES = {
+            classic: { light: '#f0d9b5', dark: '#b58863' },
+            emerald: { light: '#f0d9b5', dark: '#769656' },
+            ocean: { light: '#dee3e6', dark: '#8ca2ad' },
+            midnight: { light: '#4b4b4b', dark: '#2a2a2a' }
         };
+
+        let currentPieceTheme = 'wikipedia';
+        let currentBoardTheme = 'classic';
+
+        function getPieceUrl(piece) {
+            return `https://chessboardjs.com/img/chesspieces/${currentPieceTheme}/${piece}.png`;
+        }
 
         const game = new Chess();
         let currentGameId = null;
@@ -411,7 +439,7 @@
                     if (piece) {
                         const pieceEl = document.createElement('div');
                         pieceEl.className = 'piece';
-                        pieceEl.innerHTML = PIECES[`${piece.color}${piece.type.toUpperCase()}`];
+                        pieceEl.innerHTML = `<img src="${getPieceUrl(piece.color + piece.type.toUpperCase())}" class="w-full h-full object-contain" referrerPolicy="no-referrer" />`;
                         squareEl.appendChild(pieceEl);
                     }
 
@@ -431,6 +459,32 @@
             }
             updateStatus();
         }
+
+        window.setBoardTheme = (theme) => {
+            currentBoardTheme = theme;
+            const colors = BOARD_THEMES[theme];
+            document.documentElement.style.setProperty('--board-light', colors.light);
+            document.documentElement.style.setProperty('--board-dark', colors.dark);
+            
+            // Update UI
+            document.querySelectorAll('#board-themes .theme-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', Object.keys(BOARD_THEMES)[i] === theme);
+            });
+            
+            createBoard();
+        };
+
+        window.setPieceTheme = (theme) => {
+            currentPieceTheme = theme;
+            
+            // Update UI
+            document.querySelectorAll('#piece-themes button').forEach((btn) => {
+                btn.classList.toggle('bg-indigo-500/40', btn.innerText.toLowerCase() === theme);
+                btn.classList.toggle('border-indigo-500/50', btn.innerText.toLowerCase() === theme);
+            });
+            
+            createBoard();
+        };
 
         async function handleSquareClick(square) {
             if (game.game_over() || game.turn() !== playerRole) return;

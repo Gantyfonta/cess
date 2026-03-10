@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Grandmaster Chess</title>
+    <title>Grandmaster Chess Multiplayer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
@@ -11,7 +11,7 @@
         body {
             font-family: 'Inter', sans-serif;
             background: radial-gradient(circle at 50% 50%, #2a2a2a 0%, #1a1a1a 100%);
-            min-height: screen;
+            min-height: 100vh;
             color: white;
         }
         .chess-board {
@@ -74,19 +74,68 @@
         .custom-scrollbar::-webkit-scrollbar { width: 6px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.05); }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
+
+        .title-gradient {
+            background: linear-gradient(to right, #818cf8, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
     </style>
 </head>
 <body class="antialiased">
-    <div class="min-h-screen flex flex-col">
+    <!-- Title Screen -->
+    <div id="title-screen" class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="max-w-md w-full text-center space-y-8">
+            <div class="space-y-4">
+                <div class="w-24 h-24 bg-indigo-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 mx-auto transform -rotate-6">
+                    <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                </div>
+                <h1 class="text-5xl font-black tracking-tighter title-gradient">GRANDMASTER CHESS</h1>
+                <p class="text-white/50 font-medium">Multiplayer Real-time Strategy</p>
+            </div>
+
+            <div class="space-y-4 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-xl">
+                <button id="create-game-btn" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Create New Game
+                </button>
+                
+                <div class="relative py-4">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-[#1a1a1a] px-2 text-white/30">Or Join Game</span></div>
+                </div>
+
+                <div class="flex gap-2">
+                    <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    <button id="join-game-btn" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
+                        Join
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="game-screen" class="min-h-screen flex flex-col hidden">
         <!-- Header -->
         <header class="w-full h-16 border-b border-white/10 flex items-center justify-between px-8 bg-black/20 backdrop-blur-md sticky top-0 z-50">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-indigo-500 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                    <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
+                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                 </div>
-                <h1 class="text-xl font-bold tracking-tight">Grandmaster <span class="text-indigo-400">Chess</span></h1>
+                <h1 class="text-lg font-bold tracking-tight hidden sm:block">Grandmaster <span class="text-indigo-400">Chess</span></h1>
             </div>
-            <div class="text-white/40 text-xs hidden sm:block">Pure HTML/JS Version</div>
+            
+            <div class="flex items-center gap-4">
+                <div class="bg-white/5 px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
+                    <span class="text-xs text-white/40 uppercase font-bold tracking-wider">Game ID:</span>
+                    <span id="display-game-id" class="font-mono text-indigo-400 font-bold">------</span>
+                    <button onclick="copyGameId()" class="p-1 hover:bg-white/10 rounded transition-colors">
+                        <svg class="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
+                    </button>
+                </div>
+                <button onclick="location.reload()" class="text-white/40 hover:text-white text-xs font-bold uppercase tracking-widest transition-colors">Leave</button>
+            </div>
         </header>
 
         <!-- Main Content -->
@@ -97,7 +146,7 @@
                     <div class="flex items-center justify-between bg-white/5 backdrop-blur-sm p-4 rounded-xl border border-white/10">
                         <div class="flex items-center gap-3">
                             <div id="turn-indicator" class="w-4 h-4 rounded-full bg-white border border-black/20"></div>
-                            <span id="status-text" class="text-lg font-medium">White's Turn</span>
+                            <span id="status-text" class="text-lg font-medium">Waiting for opponent...</span>
                         </div>
                         <div id="check-badge" class="hidden px-3 py-1 bg-red-500/20 text-red-400 text-sm font-bold rounded-full border border-red-500/30 animate-pulse">
                             CHECK
@@ -107,14 +156,21 @@
                     <!-- Board -->
                     <div id="board" class="chess-board rounded-lg overflow-hidden"></div>
 
-                    <!-- Controls -->
-                    <div class="flex gap-2">
-                        <button onclick="undoMove()" id="undo-btn" class="flex-1 py-3 bg-white/10 hover:bg-white/20 disabled:opacity-50 text-white font-medium rounded-xl transition-all border border-white/10">
-                            Undo
-                        </button>
-                        <button onclick="resetGame()" class="flex-1 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-medium rounded-xl transition-all border border-red-500/30">
-                            Reset Game
-                        </button>
+                    <!-- Player Info -->
+                    <div class="flex justify-between items-center px-2">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center border border-white/10">
+                                <span id="player-role-icon" class="text-lg">?</span>
+                            </div>
+                            <div>
+                                <p class="text-xs text-white/40 font-bold uppercase tracking-widest">You are playing as</p>
+                                <p id="player-role-text" class="font-bold text-white">Assigning...</p>
+                            </div>
+                        </div>
+                        <div id="opponent-status" class="text-right">
+                            <p class="text-xs text-white/40 font-bold uppercase tracking-widest">Opponent</p>
+                            <p id="opponent-status-text" class="font-bold text-red-400">Offline</p>
+                        </div>
                     </div>
                 </div>
 
@@ -135,29 +191,37 @@
             <div class="bg-[#2a2a2a] p-8 rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl text-center">
                 <h2 id="modal-title" class="text-3xl font-bold mb-2">Checkmate!</h2>
                 <p id="modal-body" class="text-white/70 mb-6">White wins the game.</p>
-                <button onclick="resetGame()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20">
-                    Play Again
+                <button onclick="location.reload()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20">
+                    Back to Menu
                 </button>
             </div>
         </div>
-
-        <!-- Footer -->
-        <footer class="w-full py-8 border-t border-white/10 bg-black/20 mt-auto">
-            <div class="container mx-auto px-8 flex flex-col md:flex-row justify-between items-center gap-4 text-white/40 text-sm">
-                <p>© 2026 Grandmaster Chess. Built for GitHub Pages.</p>
-                <div class="flex gap-8">
-                    <a href="https://github.com" class="hover:text-white">GitHub</a>
-                    <a href="#" class="hover:text-white">About</a>
-                </div>
-            </div>
-        </footer>
     </div>
 
-    <script>
+    <!-- Firebase SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvU2DH8o3baDrRPmihP45R39OtSjhk2aA",
+            authDomain: "chess-4b89c.firebaseapp.com",
+            databaseURL: "https://chess-4b89c-default-rtdb.firebaseio.com",
+            projectId: "chess-4b89c",
+            storageBucket: "chess-4b89c.firebasestorage.app",
+            messagingSenderId: "1052008395512",
+            appId: "1:1052008395512:web:c3dc29b8da9480b25a810d",
+            measurementId: "G-1L9KKDPGYR"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // Chess Logic
         const PIECES = {
             wP: '<svg viewBox="0 0 45 45"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#fff" stroke="#000" stroke-width="1.5" stroke-linecap="round" /></svg>',
             wN: '<svg viewBox="0 0 45 45"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#fff" stroke="#000" stroke-width="1.5" /><path d="M24 18c.3 1.2 2.5 1.2 2.5.5s-1.5-2-2.5-.5z" fill="#000" /><path d="M9.5 25.5A.5.5 0 1 1 9 25a.5.5 0 0 1 .5.5z" fill="#fff" stroke="#000" /><path d="M15 15.5c4.5-4.5 11.7-2.5 11.7-2.5s-4.5 4.5-1.5 11.5c-4.5 1.5-10.2-9-10.2-9z" fill="#fff" stroke="#000" stroke-width="1.5" /></svg>',
-            wB: '<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g fill="#fff" stroke-linecap="butt"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 0 5-2 5H11c-2 0-2-5-2-5z" /><path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z" /><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" /></g><path d="M17.5 26h10M15 30h15m-7.5-14.5v5M20 18h5" stroke-linejoin="miter" /></g></svg>',
+            wB: '<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g fill="#fff" stroke-linecap="butt"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 0 5-2 5H11c-2 0-2-5-2-5z" /><path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z" /><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" /></g><path d="M17.5 26h10M15 30h15m-7.5-14.5v5M20 18h5" stroke-linejoin="miter" /></g></svg>',
             wR: '<svg viewBox="0 0 45 45"><g fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 39h27v-3H9v3zM12 36v-4h21v4H12zM11 14V9h4v2h5V9h5v2h5V9h4v5" stroke-linecap="butt" /><path d="M34 14l-3 3H14l-3-3" /><path d="M31 17v12.5H14V17" stroke-linecap="butt" stroke-linejoin="miter" /><path d="M31 29.5l1.5 2.5h-20l1.5-2.5" /><path d="M11 14h23" fill="none" stroke-linejoin="miter" /></g></svg>',
             wQ: '<svg viewBox="0 0 45 45"><g fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM24.5 7.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM41 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM11 20a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM38 20a2 2 0 1 1-4 0 2 2 0 1 1 4 0z" /><path d="M9 26c8.5-1.5 21-1.5 27 0l2-12-7 11V11l-5.5 13.5-3-15-3 15-5.5-13.5V25L7 14l2 12z" stroke-linecap="butt" /><path d="M9 26c0 2 1.5 2 2.5 4 2.5 4 17 4 19.5 0 1-2 2.5-2 2.5-4-8.5-1.5-18.5-1.5-24.5 0z" /><path d="M11.5 30c3.5-1 18.5-1 22 0M12 33.5c6-1 15-1 21 0" fill="none" /><path d="M9 39h27v-3H9v3z" /></g></svg>',
             wK: '<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22.5 11.63V6M20 8h5" stroke-linejoin="miter" /><path d="M22.5 25s4.5-7.5 3-10c-1.5-2.5-6-2.5-6 0-1.5 2.5 3 10 3 10" fill="#fff" stroke-linecap="butt" /><path d="M11.5 37c5.5 3.5 15.5 3.5 21 0v-7s9-4.5 6-10.5c-4-1-1-4-1-4--3 0-2.5 2-2.5 2-3.5-2-6-2-6-2 .5-2.5-.5-3.5-.5-3.5-1.5-1.5-2.5-1.5-2.5-1.5s-1 0-2.5 1.5c0 0-1 1-.5 3.5c0 0-2.5 0-6 2 0 0-.5-2-2.5-2 0 0 3 3-1 4 0 0 3 9.5-6 10.5-3 6 6 10.5 6 10.5v7z" fill="#fff" /><path d="M11.5 30c5.5-3 15.5-3 21 0m-21 3.5c5.5-3 15.5-3 21 0m-21 3.5c5.5-3 15.5-3 21 0" /></g></svg>',
@@ -170,26 +234,123 @@
         };
 
         const game = new Chess();
+        let currentGameId = null;
+        let playerRole = null; // 'w' or 'b'
         let selectedSquare = null;
         let lastMove = null;
+        let playerId = localStorage.getItem('chess_player_id') || Math.random().toString(36).substring(2, 15);
+        localStorage.setItem('chess_player_id', playerId);
 
+        // UI Elements
+        const titleScreen = document.getElementById('title-screen');
+        const gameScreen = document.getElementById('game-screen');
         const boardEl = document.getElementById('board');
         const statusText = document.getElementById('status-text');
         const turnIndicator = document.getElementById('turn-indicator');
         const checkBadge = document.getElementById('check-badge');
         const moveHistoryEl = document.getElementById('move-history');
-        const undoBtn = document.getElementById('undo-btn');
+        const displayGameId = document.getElementById('display-game-id');
+        const playerRoleText = document.getElementById('player-role-text');
+        const playerRoleIcon = document.getElementById('player-role-icon');
+        const opponentStatusText = document.getElementById('opponent-status-text');
         const modal = document.getElementById('game-over-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
+
+        // Multiplayer Logic
+        async function createGame() {
+            const gameId = Math.random().toString(36).substring(2, 8).toUpperCase();
+            const gameRef = ref(db, 'games/' + gameId);
+            
+            await set(gameRef, {
+                fen: game.fen(),
+                lastMove: null,
+                players: {
+                    white: playerId,
+                    black: null
+                },
+                status: 'waiting',
+                createdAt: Date.now()
+            });
+
+            joinGame(gameId);
+        }
+
+        async function joinGame(gameId) {
+            gameId = gameId.toUpperCase();
+            const gameRef = ref(db, 'games/' + gameId);
+            const snapshot = await get(gameRef);
+
+            if (!snapshot.exists()) {
+                alert('Game not found!');
+                return;
+            }
+
+            const data = snapshot.val();
+            currentGameId = gameId;
+
+            // Assign role
+            if (data.players.white === playerId) {
+                playerRole = 'w';
+            } else if (data.players.black === playerId) {
+                playerRole = 'b';
+            } else if (!data.players.black) {
+                // Join as black
+                await update(gameRef, {
+                    'players/black': playerId,
+                    status: 'playing'
+                });
+                playerRole = 'b';
+            } else {
+                alert('Game is full!');
+                return;
+            }
+
+            setupGameUI();
+            listenToGame();
+        }
+
+        function setupGameUI() {
+            titleScreen.classList.add('hidden');
+            gameScreen.classList.remove('hidden');
+            displayGameId.innerText = currentGameId;
+            playerRoleText.innerText = playerRole === 'w' ? 'White' : 'Black';
+            playerRoleIcon.innerText = playerRole === 'w' ? '♔' : '♚';
+        }
+
+        function listenToGame() {
+            const gameRef = ref(db, 'games/' + currentGameId);
+            onValue(gameRef, (snapshot) => {
+                const data = snapshot.val();
+                if (!data) return;
+
+                game.load(data.fen);
+                lastMove = data.lastMove;
+                
+                // Update opponent status
+                if (data.players.white && data.players.black) {
+                    opponentStatusText.innerText = 'Online';
+                    opponentStatusText.className = 'font-bold text-emerald-400';
+                } else {
+                    opponentStatusText.innerText = 'Waiting...';
+                    opponentStatusText.className = 'font-bold text-amber-400';
+                }
+
+                createBoard();
+                updateHistory();
+            });
+        }
 
         function createBoard() {
             boardEl.innerHTML = '';
             const board = game.board();
             const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
 
-            for (let row = 0; row < 8; row++) {
-                for (let col = 0; col < 8; col++) {
+            for (let r = 0; r < 8; r++) {
+                const row = playerRole === 'b' ? 7 - r : r;
+                for (let c = 0; c < 8; c++) {
+                    const col = playerRole === 'b' ? 7 - c : c;
+                    
                     const squareName = `${squareNames[col]}${8 - row}`;
                     const piece = board[row][col];
                     const isDark = (row + col) % 2 === 1;
@@ -198,7 +359,6 @@
                     squareEl.className = `square ${isDark ? 'dark' : 'light'}`;
                     squareEl.dataset.square = squareName;
                     
-                    // Highlights
                     if (selectedSquare === squareName) squareEl.classList.add('selected');
                     if (lastMove && (lastMove.from === squareName || lastMove.to === squareName)) {
                         squareEl.classList.add('last-move');
@@ -207,21 +367,6 @@
                         squareEl.classList.add('check');
                     }
 
-                    // Coordinates
-                    if (col === 0) {
-                        const rCoord = document.createElement('span');
-                        rCoord.className = `coord top-0.5 left-0.5 ${isDark ? 'coord-dark' : 'coord-light'}`;
-                        rCoord.innerText = 8 - row;
-                        squareEl.appendChild(rCoord);
-                    }
-                    if (row === 7) {
-                        const cCoord = document.createElement('span');
-                        cCoord.className = `coord bottom-0.5 right-0.5 ${isDark ? 'coord-dark' : 'coord-light'}`;
-                        cCoord.innerText = squareNames[col];
-                        squareEl.appendChild(cCoord);
-                    }
-
-                    // Piece
                     if (piece) {
                         const pieceEl = document.createElement('div');
                         pieceEl.className = 'piece';
@@ -229,8 +374,7 @@
                         squareEl.appendChild(pieceEl);
                     }
 
-                    // Move Indicators
-                    if (selectedSquare) {
+                    if (selectedSquare && game.turn() === playerRole) {
                         const moves = game.moves({ square: selectedSquare, verbose: true });
                         const move = moves.find(m => m.to === squareName);
                         if (move) {
@@ -247,8 +391,8 @@
             updateStatus();
         }
 
-        function handleSquareClick(square) {
-            if (game.game_over()) return;
+        async function handleSquareClick(square) {
+            if (game.game_over() || game.turn() !== playerRole) return;
 
             const piece = game.get(square);
             const moves = game.moves({ square: selectedSquare, verbose: true });
@@ -258,18 +402,20 @@
                 const result = game.move({
                     from: selectedSquare,
                     to: square,
-                    promotion: 'q' // Always promote to queen for simplicity
+                    promotion: 'q'
                 });
                 if (result) {
-                    lastMove = result;
+                    const gameRef = ref(db, 'games/' + currentGameId);
+                    await update(gameRef, {
+                        fen: game.fen(),
+                        lastMove: result
+                    });
                     selectedSquare = null;
-                    createBoard();
-                    updateHistory();
                     return;
                 }
             }
 
-            if (piece && piece.color === game.turn()) {
+            if (piece && piece.color === playerRole) {
                 selectedSquare = square;
             } else {
                 selectedSquare = null;
@@ -279,7 +425,15 @@
 
         function updateStatus() {
             const turn = game.turn() === 'w' ? 'White' : 'Black';
-            statusText.innerText = game.game_over() ? 'Game Over' : `${turn}'s Turn`;
+            const isMyTurn = game.turn() === playerRole;
+            
+            if (game.game_over()) {
+                statusText.innerText = 'Game Over';
+                showGameOver();
+            } else {
+                statusText.innerText = isMyTurn ? "Your Turn" : `${turn}'s Turn`;
+            }
+
             turnIndicator.className = `w-4 h-4 rounded-full ${game.turn() === 'w' ? 'bg-white border border-black/20' : 'bg-black border border-white/20'}`;
             
             if (game.in_check() && !game.game_over()) {
@@ -287,12 +441,6 @@
             } else {
                 checkBadge.classList.add('hidden');
             }
-
-            if (game.game_over()) {
-                showGameOver();
-            }
-            
-            undoBtn.disabled = game.history().length === 0;
         }
 
         function updateHistory() {
@@ -321,24 +469,6 @@
             moveHistoryEl.scrollTop = moveHistoryEl.scrollHeight;
         }
 
-        function undoMove() {
-            game.undo();
-            const history = game.history({ verbose: true });
-            lastMove = history.length > 0 ? history[history.length - 1] : null;
-            selectedSquare = null;
-            createBoard();
-            updateHistory();
-        }
-
-        function resetGame() {
-            game.reset();
-            selectedSquare = null;
-            lastMove = null;
-            modal.classList.add('hidden');
-            createBoard();
-            updateHistory();
-        }
-
         function showGameOver() {
             modal.classList.remove('hidden');
             if (game.in_checkmate()) {
@@ -347,14 +477,20 @@
             } else if (game.in_draw()) {
                 modalTitle.innerText = 'Draw!';
                 modalBody.innerText = game.in_stalemate() ? 'Stalemate! No legal moves left.' : 'The game ended in a draw.';
-            } else {
-                modalTitle.innerText = 'Game Over';
-                modalBody.innerText = 'The game has ended.';
             }
         }
 
-        // Initialize
-        createBoard();
+        window.copyGameId = () => {
+            navigator.clipboard.writeText(currentGameId);
+            alert('Game ID copied to clipboard!');
+        };
+
+        // Event Listeners
+        document.getElementById('create-game-btn').onclick = createGame;
+        document.getElementById('join-game-btn').onclick = () => {
+            const id = document.getElementById('join-game-id').value;
+            if (id) joinGame(id);
+        };
     </script>
 </body>
 </html>

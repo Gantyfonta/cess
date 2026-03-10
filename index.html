@@ -308,27 +308,37 @@
             p: {
                 classic: { name: 'Classic', desc: 'Standard pawn moves.' },
                 scout: { name: 'Scout', desc: 'Can move 2 squares forward at any time.' },
-                vanguard: { name: 'Vanguard', desc: 'Can move 1 square diagonally forward (non-capture).' }
+                vanguard: { name: 'Vanguard', desc: 'Can move 1 square diagonally forward (non-capture).' },
+                ghost: { name: 'Ghost', desc: 'Can leap over a piece forward.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             n: {
                 classic: { name: 'Classic', desc: 'Standard L-shape.' },
                 lancer: { name: 'Lancer', desc: 'Can move in 3x1 L-shape as well.' },
-                templar: { name: 'Templar', desc: 'Can move 2 squares orthogonally.' }
+                templar: { name: 'Templar', desc: 'Can move 2 squares orthogonally.' },
+                paladin: { name: 'Paladin', desc: 'Can move 1 square in any direction.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             b: {
                 classic: { name: 'Classic', desc: 'Standard diagonal.' },
                 mystic: { name: 'Mystic', desc: 'Can move 1 square orthogonally.' },
-                oracle: { name: 'Oracle', desc: 'Can move 2 squares orthogonally.' }
+                oracle: { name: 'Oracle', desc: 'Can jump over 1 piece diagonally.' },
+                inquisitor: { name: 'Inquisitor', desc: 'Can leap 3 squares diagonally.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             r: {
                 classic: { name: 'Classic', desc: 'Standard straight.' },
                 juggernaut: { name: 'Juggernaut', desc: 'Can move 1 square diagonally.' },
-                sentinel: { name: 'Sentinel', desc: 'Can move 2 squares diagonally.' }
+                sentinel: { name: 'Sentinel', desc: 'Can leap 2 squares diagonally.' },
+                cannon: { name: 'Cannon', desc: 'Can jump over 1 piece orthogonally.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             q: {
                 classic: { name: 'Classic', desc: 'Standard Queen.' },
                 empress: { name: 'Empress', desc: 'Combines Queen + Knight moves.' },
-                goddess: { name: 'Goddess', desc: 'Queen + 2-square leap in any direction.' }
+                goddess: { name: 'Goddess', desc: 'Queen + 2-square leap in any direction.' },
+                archon: { name: 'Archon', desc: 'Can leap 3 squares in any direction.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             }
         };
 
@@ -670,8 +680,16 @@
             const piece = game.get(square);
             if (!piece || piece.color !== playerRole) return standardMoves;
 
-            const skin = playerSkins[piece.type];
+            let skin = playerSkins[piece.type];
             if (!skin || skin === 'classic') return standardMoves;
+
+            // Gambling logic
+            if (skin === 'gambler') {
+                const otherSkins = Object.keys(SKIN_ABILITIES[piece.type]).filter(s => s !== 'classic' && s !== 'gambler');
+                // Stable random based on FEN and square
+                const seed = game.fen().length + square.charCodeAt(0) + square.charCodeAt(1);
+                skin = otherSkins[seed % otherSkins.length];
+            }
 
             const specialMoves = [];
             const r = 8 - parseInt(square[1]);
@@ -706,17 +724,29 @@
                         }
                     }
                 });
+            } else if (piece.type === 'p' && skin === 'ghost') {
+                const dir = piece.color === 'w' ? -1 : 1;
+                const forward2 = String.fromCharCode(97 + c) + (8 - (r + 2 * dir));
+                if (r + 2 * dir >= 0 && r + 2 * dir <= 7 && !game.get(forward2)) {
+                    specialMoves.push({ from: square, to: forward2, piece: 'p', color: piece.color });
+                }
             } else if (piece.type === 'n' && skin === 'lancer') {
                 const offsets = [[3,1], [3,-1], [-3,1], [-3,-1], [1,3], [1,-3], [-1,3], [-1,-3]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'n' && skin === 'templar') {
                 const offsets = [[2,0], [-2,0], [0,2], [0,-2]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'n' && skin === 'paladin') {
+                const offsets = [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,1], [-1,-1]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'b' && skin === 'mystic') {
                 const offsets = [[1,0], [-1,0], [0,1], [0,-1]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'b' && skin === 'oracle') {
-                const offsets = [[2,0], [-2,0], [0,2], [0,-2]];
+                const offsets = [[2,2], [2,-2], [-2,2], [-2,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'b' && skin === 'inquisitor') {
+                const offsets = [[3,3], [3,-3], [-3,3], [-3,-3]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'r' && skin === 'juggernaut') {
                 const offsets = [[1,1], [1,-1], [-1,1], [-1,-1]];
@@ -724,11 +754,17 @@
             } else if (piece.type === 'r' && skin === 'sentinel') {
                 const offsets = [[2,2], [2,-2], [-2,2], [-2,-2]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'r' && skin === 'cannon') {
+                const offsets = [[2,0], [-2,0], [0,2], [0,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'q' && skin === 'empress') {
                 const offsets = [[2,1], [2,-1], [-2,1], [-2,-1], [1,2], [1,-2], [-1,2], [-1,-2]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'q' && skin === 'goddess') {
                 const offsets = [[2,0], [-2,0], [0,2], [0,-2], [2,2], [2,-2], [-2,2], [-2,-2], [2,1], [2,-1], [-2,1], [-2,-1], [1,2], [1,-2], [-1,2], [-1,-2]];
+                offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
+            } else if (piece.type === 'q' && skin === 'archon') {
+                const offsets = [[3,0], [-3,0], [0,3], [0,-3], [3,3], [3,-3], [-3,3], [-3,-3], [3,1], [3,-1], [-3,1], [-3,-1], [1,3], [1,-3], [-1,3], [-1,-3]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             }
 

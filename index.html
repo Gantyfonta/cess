@@ -352,6 +352,12 @@
         let selectedSquare = null;
         let lastMove = null;
         let isConfiguringLoadout = false;
+        
+        // Move Cheat Mode
+        let moveModeActive = false;
+        let controlledSquare = null;
+        let typedBuffer = "";
+        
         let playerId = localStorage.getItem('chess_player_id') || Math.random().toString(36).substring(2, 15);
         localStorage.setItem('chess_player_id', playerId);
 
@@ -591,6 +597,7 @@
                     squareEl.dataset.square = squareName;
                     
                     if (selectedSquare === squareName) squareEl.classList.add('selected');
+                    if (controlledSquare === squareName) squareEl.classList.add('bg-indigo-500/40', 'ring-4', 'ring-indigo-500', 'z-30');
                     if (lastMove && (lastMove.from === squareName || lastMove.to === squareName)) {
                         squareEl.classList.add('last-move');
                     }
@@ -779,6 +786,17 @@
         async function handleSquareClick(square) {
             if (game.game_over() || game.turn() !== playerRole) return;
 
+            // Move Mode Logic
+            if (moveModeActive) {
+                const piece = game.get(square);
+                if (piece && piece.color === playerRole) {
+                    controlledSquare = square;
+                    statusText.innerText = `Controlling ${square.toUpperCase()} (WASD to move, Space to release)`;
+                    createBoard();
+                    return;
+                }
+            }
+
             const piece = game.get(square);
             const moves = getLegalMoves(selectedSquare);
             const move = moves.find(m => m.to === square);
@@ -887,6 +905,64 @@
             navigator.clipboard.writeText(currentGameId);
             alert('Game ID copied to clipboard!');
         };
+
+        // Cheat Code & WASD Control
+        window.addEventListener('keydown', async (e) => {
+            const key = e.key.toLowerCase();
+            
+            // Detect "move"
+            if (!moveModeActive) {
+                typedBuffer += key;
+                if (typedBuffer.endsWith("move")) {
+                    moveModeActive = true;
+                    typedBuffer = "";
+                    statusText.innerText = "MOVE MODE ACTIVE: Click a piece to control";
+                    statusText.classList.add('text-indigo-400', 'animate-pulse');
+                }
+                // Keep buffer short
+                if (typedBuffer.length > 10) typedBuffer = typedBuffer.substring(1);
+            }
+
+            if (moveModeActive && controlledSquare) {
+                const r = 8 - parseInt(controlledSquare[1]);
+                const c = controlledSquare.charCodeAt(0) - 97;
+                let nr = r, nc = c;
+
+                if (key === 'w') nr--;
+                if (key === 's') nr++;
+                if (key === 'a') nc--;
+                if (key === 'd') nc++;
+                if (key === ' ') {
+                    moveModeActive = false;
+                    controlledSquare = null;
+                    statusText.innerText = "Move Mode Deactivated";
+                    statusText.classList.remove('text-indigo-400', 'animate-pulse');
+                    createBoard();
+                    return;
+                }
+
+                if (nr !== r || nc !== c) {
+                    if (nr >= 0 && nr <= 7 && nc >= 0 && nc <= 7) {
+                        const targetSquare = String.fromCharCode(97 + nc) + (8 - nr);
+                        const pieceToMove = game.get(controlledSquare);
+                        
+                        // Force move
+                        game.remove(controlledSquare);
+                        game.put(pieceToMove, targetSquare);
+                        
+                        const gameRef = ref(db, 'games/' + currentGameId);
+                        await update(gameRef, {
+                            fen: game.fen(),
+                            lastMove: { from: controlledSquare, to: targetSquare }
+                        });
+                        
+                        controlledSquare = targetSquare;
+                        statusText.innerText = `Controlling ${controlledSquare.toUpperCase()} (WASD to move, Space to release)`;
+                        createBoard();
+                    }
+                }
+            }
+        });
 
         // Event Listeners
         document.getElementById('create-game-btn').onclick = createGame;

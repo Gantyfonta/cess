@@ -276,8 +276,14 @@
                         </div>
                     </div>
 
+                    <!-- Opponent Captured Pieces -->
+                    <div id="opponent-captured" class="flex flex-wrap gap-1 min-h-[24px] px-2"></div>
+
                     <!-- Board -->
                     <div id="board" class="chess-board rounded-lg overflow-hidden"></div>
+
+                    <!-- Player Captured Pieces -->
+                    <div id="player-captured" class="flex flex-wrap gap-1 min-h-[24px] px-2"></div>
 
                     <!-- Player Info -->
                     <div class="flex justify-between items-center px-2">
@@ -395,7 +401,7 @@
                 ghost: { name: 'Ghost', desc: 'Can leap over a piece forward.' },
                 berserker: { name: 'Berserker', desc: 'Can move 1 square sideways.' },
                 miner: { name: 'Miner', desc: 'Can move 1 square backward.' },
-                piggy: { name: 'Piggy', desc: 'Can move 1 square in any direction.' },
+                piggy: { name: 'Piggy', desc: 'Can move 1 square diagonally backward.' },
                 clockwork: { name: 'Clockwork', desc: 'Can move 1 square backward or sideways.' },
                 demogorgon: { name: 'Demogorgon', desc: 'Can capture 2 squares diagonally forward.' },
                 shelly: { name: 'Shelly', desc: 'Can move 2 squares forward.' },
@@ -955,7 +961,9 @@
                 }
 
                 createBoard();
-                updateHistory();
+                updateHistory(data);
+                updateCapturedPieces(data.captured);
+                updateStatus();
             });
         }
 
@@ -1167,7 +1175,8 @@
                 const dir = piece.color === 'w' ? 1 : -1;
                 addMove(r + dir, c);
             } else if (piece.type === 'p' && skin === 'piggy') {
-                [[1,0], [-1,0], [0,1], [0,-1], [1,1], [1,-1], [-1,1], [-1,-1]].forEach(([dr, dc]) => addMove(r + dr, c + dc));
+                const dir = piece.color === 'w' ? 1 : -1;
+                [[dir, 1], [dir, -1]].forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'p' && skin === 'clockwork') {
                 const dir = piece.color === 'w' ? 1 : -1;
                 [[dir, 0], [0, 1], [0, -1]].forEach(([dr, dc]) => addMove(r + dr, c + dc));
@@ -1237,7 +1246,7 @@
                 const offsets = [[2,2], [2,-2], [-2,2], [-2,-2]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'b' && skin === 'mindflayer') {
-                const offsets = [[2,0], [-2,0], [0,2], [0,-2]];
+                const offsets = [[2,0], [-2,0], [0,2], [0,-2], [2,2], [2,-2], [-2,2], [-2,-2]];
                 offsets.forEach(([dr, dc]) => addMove(r + dr, c + dc));
             } else if (piece.type === 'b' && skin === 'piper') {
                 const offsets = [[4,4], [4,-4], [-4,4], [-4,-4]];
@@ -1340,27 +1349,48 @@
                 // Check if it's a special move
                 const standardMoves = gameConfig.size === 8 ? game.moves({ square: selectedSquare, verbose: true }) : [];
                 const isSpecial = !standardMoves.find(m => m.to === square);
-
-                if (isSpecial || gameConfig.size !== 8) {
-                    // Manually execute move
-                    const pieceToMove = getPiece(selectedSquare);
+                const pieceToMove = getPiece(selectedSquare);
+                const targetPiece = getPiece(square);
+                
+                let moveSan = "";
+                if (gameConfig.size === 8 && !isSpecial) {
+                    const m = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+                    moveSan = m.san;
+                } else {
+                    // Manual move SAN
+                    const pieceChar = pieceToMove.type === 'p' ? '' : pieceToMove.type.toUpperCase();
+                    const captureChar = targetPiece ? 'x' : '';
+                    moveSan = `${pieceChar}${captureChar}${square}`;
+                    
                     setPiece(selectedSquare, null);
                     setPiece(square, pieceToMove);
                     toggleTurn();
-                } else {
-                    game.move({
-                        from: selectedSquare,
-                        to: square,
-                        promotion: 'q'
-                    });
                 }
 
                 try {
                     const gameRef = ref(db, 'games/' + currentGameId);
-                    await update(gameRef, {
+                    const updates = {
                         fen: gameConfig.size === 8 ? game.fen() : JSON.stringify(customBoard),
                         lastMove: { from: selectedSquare, to: square }
-                    });
+                    };
+
+                    // Update custom history
+                    const historyRef = ref(db, `games/${currentGameId}/customHistory`);
+                    const historySnap = await get(historyRef);
+                    const history = historySnap.val() || [];
+                    history.push(moveSan);
+                    updates.customHistory = history;
+
+                    // Update captured pieces
+                    if (targetPiece) {
+                        const capturedRef = ref(db, `games/${currentGameId}/captured`);
+                        const capturedSnap = await get(capturedRef);
+                        const captured = capturedSnap.val() || { w: [], b: [] };
+                        captured[targetPiece.color].push(targetPiece.type);
+                        updates.captured = captured;
+                    }
+
+                    await update(gameRef, updates);
                     selectedSquare = null;
                 } catch (e) { console.error(e); }
             } else {
@@ -1403,12 +1433,38 @@
             }
         }
 
-        function updateHistory() {
-            if (gameConfig.size !== 8) {
-                moveHistoryEl.innerHTML = '<p class="text-white/40 italic text-sm col-span-2">History not available for custom sizes.</p>';
-                return;
+        function updateCapturedPieces(captured) {
+            if (!captured) return;
+            const playerCapturedEl = document.getElementById('player-captured');
+            const opponentCapturedEl = document.getElementById('opponent-captured');
+            
+            playerCapturedEl.innerHTML = '';
+            opponentCapturedEl.innerHTML = '';
+
+            const renderCaptured = (list, el, color) => {
+                list.forEach(type => {
+                    const img = document.createElement('img');
+                    img.src = `https://chessboardjs.com/img/chesspieces/wikipedia/${color}${type.toUpperCase()}.png`;
+                    img.className = 'w-5 h-5 opacity-60';
+                    img.referrerPolicy = 'no-referrer';
+                    el.appendChild(img);
+                });
+            };
+
+            // If I am white, I show pieces I captured (black pieces) in player-captured
+            // and pieces opponent captured (white pieces) in opponent-captured
+            if (playerRole === 'w') {
+                renderCaptured(captured.b || [], playerCapturedEl, 'b');
+                renderCaptured(captured.w || [], opponentCapturedEl, 'w');
+            } else {
+                renderCaptured(captured.w || [], playerCapturedEl, 'w');
+                renderCaptured(captured.b || [], opponentCapturedEl, 'b');
             }
-            const history = game.history();
+        }
+
+        function updateHistory(data) {
+            const history = data && data.customHistory ? data.customHistory : (gameConfig.size === 8 ? game.history() : []);
+            
             if (history.length === 0) {
                 moveHistoryEl.innerHTML = '<p class="text-white/40 italic text-sm col-span-2">No moves yet...</p>';
                 return;

@@ -168,6 +168,15 @@
             <div class="text-center space-y-2">
                 <h2 class="text-3xl font-black tracking-tighter title-gradient">GAME LOBBY</h2>
                 <p class="text-white/50 font-medium">Configure your match settings</p>
+                <div class="flex items-center justify-center gap-3 bg-white/5 py-2 px-4 rounded-xl border border-white/10 w-fit mx-auto mt-4">
+                    <div class="flex items-center gap-2">
+                        <span class="text-[10px] text-white/40 uppercase font-bold tracking-widest">Room Code:</span>
+                        <span id="lobby-game-id" class="font-mono text-indigo-400 font-bold text-lg">------</span>
+                    </div>
+                    <button onclick="copyGameId()" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors border border-white/5">
+                        <svg class="w-4 h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
+                    </button>
+                </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -551,6 +560,10 @@
         }
 
         function updateLobbyUI() {
+            // Update Room Code
+            const lobbyIdDisplay = document.getElementById('lobby-game-id');
+            if (lobbyIdDisplay) lobbyIdDisplay.innerText = currentGameId;
+
             // Mode buttons
             modeRegularBtn.classList.toggle('active-mode', gameConfig.mode === 'regular');
             modeRegularBtn.classList.toggle('border-indigo-500/50', gameConfig.mode === 'regular');

@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♔</text></svg>">
     <title>Grandmaster Chess Multiplayer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
@@ -58,9 +59,15 @@
             height: 85%;
             z-index: 10;
             user-select: none;
-            transition: transform 0.1s;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), filter 0.2s;
+            filter: drop-shadow(0 2px 2px rgba(0,0,0,0.2));
         }
-        .piece:active { transform: scale(1.1); }
+        .piece:hover { 
+            transform: scale(1.15) translateY(-4px); 
+            filter: drop-shadow(0 12px 12px rgba(0,0,0,0.4));
+            z-index: 50;
+        }
+        .piece:active { transform: scale(1.05); }
         
         .coord {
             position: absolute;
@@ -219,18 +226,18 @@
 
         // Chess Logic
         const PIECES = {
-            wP: '<svg viewBox="0 0 45 45"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" fill="#fff" stroke="#000" stroke-width="1.5" stroke-linecap="round" /></svg>',
-            wN: '<svg viewBox="0 0 45 45"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" fill="#fff" stroke="#000" stroke-width="1.5" /><path d="M24 18c.3 1.2 2.5 1.2 2.5.5s-1.5-2-2.5-.5z" fill="#000" /><path d="M9.5 25.5A.5.5 0 1 1 9 25a.5.5 0 0 1 .5.5z" fill="#fff" stroke="#000" /><path d="M15 15.5c4.5-4.5 11.7-2.5 11.7-2.5s-4.5 4.5-1.5 11.5c-4.5 1.5-10.2-9-10.2-9z" fill="#fff" stroke="#000" stroke-width="1.5" /></svg>',
-            wB: '<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g fill="#fff" stroke-linecap="butt"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 0 5-2 5H11c-2 0-2-5-2-5z" /><path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z" /><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" /></g><path d="M17.5 26h10M15 30h15m-7.5-14.5v5M20 18h5" stroke-linejoin="miter" /></g></svg>',
-            wR: '<svg viewBox="0 0 45 45"><g fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 39h27v-3H9v3zM12 36v-4h21v4H12zM11 14V9h4v2h5V9h5v2h5V9h4v5" stroke-linecap="butt" /><path d="M34 14l-3 3H14l-3-3" /><path d="M31 17v12.5H14V17" stroke-linecap="butt" stroke-linejoin="miter" /><path d="M31 29.5l1.5 2.5h-20l1.5-2.5" /><path d="M11 14h23" fill="none" stroke-linejoin="miter" /></g></svg>',
-            wQ: '<svg viewBox="0 0 45 45"><g fill="#fff" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM24.5 7.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM41 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM11 20a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM38 20a2 2 0 1 1-4 0 2 2 0 1 1 4 0z" /><path d="M9 26c8.5-1.5 21-1.5 27 0l2-12-7 11V11l-5.5 13.5-3-15-3 15-5.5-13.5V25L7 14l2 12z" stroke-linecap="butt" /><path d="M9 26c0 2 1.5 2 2.5 4 2.5 4 17 4 19.5 0 1-2 2.5-2 2.5-4-8.5-1.5-18.5-1.5-24.5 0z" /><path d="M11.5 30c3.5-1 18.5-1 22 0M12 33.5c6-1 15-1 21 0" fill="none" /><path d="M9 39h27v-3H9v3z" /></g></svg>',
-            wK: '<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22.5 11.63V6M20 8h5" stroke-linejoin="miter" /><path d="M22.5 25s4.5-7.5 3-10c-1.5-2.5-6-2.5-6 0-1.5 2.5 3 10 3 10" fill="#fff" stroke-linecap="butt" /><path d="M11.5 37c5.5 3.5 15.5 3.5 21 0v-7s9-4.5 6-10.5c-4-1-1-4-1-4--3 0-2.5 2-2.5 2-3.5-2-6-2-6-2 .5-2.5-.5-3.5-.5-3.5-1.5-1.5-2.5-1.5-2.5-1.5s-1 0-2.5 1.5c0 0-1 1-.5 3.5c0 0-2.5 0-6 2 0 0-.5-2-2.5-2 0 0 3 3-1 4 0 0 3 9.5-6 10.5-3 6 6 10.5 6 10.5v7z" fill="#fff" /><path d="M11.5 30c5.5-3 15.5-3 21 0m-21 3.5c5.5-3 15.5-3 21 0m-21 3.5c5.5-3 15.5-3 21 0" /></g></svg>',
-            bP: '<svg viewBox="0 0 45 45"><path d="M22.5 9c-2.21 0-4 1.79-4 4 0 .89.29 1.71.78 2.38C17.33 16.5 16 18.59 16 21c0 2.03.94 3.84 2.41 5.03-3 1.06-7.41 5.55-7.41 13.47h23c0-7.92-4.41-12.41-7.41-13.47 1.47-1.19 2.41-3 2.41-5.03 0-2.41-1.33-4.5-3.28-5.62.49-.67.78-1.49.78-2.38 0-2.21-1.79-4-4-4z" stroke="#fff" stroke-width="1.5" stroke-linecap="round" /></svg>',
-            bN: '<svg viewBox="0 0 45 45"><path d="M22 10c10.5 1 16.5 8 16 29H15c0-9 10-6.5 8-21" stroke="#fff" stroke-width="1.5" /><path d="M24 18c.3 1.2 2.5 1.2 2.5.5s-1.5-2-2.5-.5z" fill="#fff" /><path d="M9.5 25.5A.5.5 0 1 1 9 25a.5.5 0 0 1 .5.5z" fill="#fff" stroke="#fff" /><path d="M15 15.5c4.5-4.5 11.7-2.5 11.7-2.5s-4.5 4.5-1.5 11.5c-4.5 1.5-10.2-9-10.2-9z" stroke="#fff" stroke-width="1.5" /></svg>',
-            bB: '<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><g stroke-linecap="butt"><path d="M9 36c3.39-.97 10.11.43 13.5-2 3.39 2.43 10.11 1.03 13.5 2 0 0 0 5-2 5H11c-2 0-2-5-2-5z" /><path d="M15 32c2.5 2.5 12.5 2.5 15 0 .5-1.5 0-2 0-2 0-2.5-2.5-4-2.5-4 5.5-1.5 6-11.5-5-15.5-11 4-10.5 14-5 15.5 0 0-2.5 1.5-2.5 4 0 0-.5.5 0 2z" /><path d="M25 8a2.5 2.5 0 1 1-5 0 2.5 2.5 0 1 1 5 0z" /></g><path d="M17.5 26h10M15 30h15m-7.5-14.5v5M20 18h5" stroke="#000" stroke-linejoin="miter" /></g></svg>',
-            bR: '<svg viewBox="0 0 45 45"><g fill-rule="evenodd" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 39h27v-3H9v3zM12 36v-4h21v4H12zM11 14V9h4v2h5V9h5v2h5V9h4v5" stroke-linecap="butt" /><path d="M34 14l-3 3H14l-3-3" /><path d="M31 17v12.5H14V17" stroke-linecap="butt" stroke-linejoin="miter" /><path d="M31 29.5l1.5 2.5h-20l1.5-2.5" /><path d="M11 14h23" fill="none" stroke-linejoin="miter" /></g></svg>',
-            bQ: '<svg viewBox="0 0 45 45"><g fill-rule="evenodd" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM24.5 7.5a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM41 12a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM11 20a2 2 0 1 1-4 0 2 2 0 1 1 4 0zM38 20a2 2 0 1 1-4 0 2 2 0 1 1 4 0z" /><path d="M9 26c8.5-1.5 21-1.5 27 0l2-12-7 11V11l-5.5 13.5-3-15-3 15-5.5-13.5V25L7 14l2 12z" stroke-linecap="butt" /><path d="M9 26c0 2 1.5 2 2.5 4 2.5 4 17 4 19.5 0 1-2 2.5-2 2.5-4-8.5-1.5-18.5-1.5-24.5 0z" /><path d="M11.5 30c3.5-1 18.5-1 22 0M12 33.5c6-1 15-1 21 0" fill="none" /><path d="M9 39h27v-3H9v3z" /></g></svg>',
-            bK: '<svg viewBox="0 0 45 45"><g fill="none" fill-rule="evenodd" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22.5 11.63V6M20 8h5" stroke-linejoin="miter" /><path d="M22.5 25s4.5-7.5 3-10c-1.5-2.5-6-2.5-6 0-1.5 2.5 3 10 3 10" stroke-linecap="butt" /><path d="M11.5 37c5.5 3.5 15.5 3.5 21 0v-7s9-4.5 6-10.5c-4-1-1-4-1-4--3 0-2.5 2-2.5 2-3.5-2-6-2-6-2 .5-2.5-.5-3.5-.5-3.5-1.5-1.5-2.5-1.5-2.5-1.5s-1 0-2.5 1.5c0 0-1 1-.5 3.5c0 0-2.5 0-6 2 0 0-.5-2-2.5-2 0 0 3 3-1 4 0 0 3 9.5-6 10.5-3 6 6 10.5 6 10.5v7z" /><path d="M11.5 30c5.5-3 15.5-3 21 0m-21 3.5c5.5-3 15.5-3 21 0m-21 3.5c5.5-3 15.5-3 21 0" /></g></svg>',
+            wP: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wP.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            wN: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wN.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            wB: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wB.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            wR: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wR.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            wQ: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wQ.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            wK: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/wK.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            bP: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bP.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            bN: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bN.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            bB: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bB.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            bR: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bR.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            bQ: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bQ.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
+            bK: '<img src="https://chessboardjs.com/img/chesspieces/wikipedia/bK.png" class="w-full h-full object-contain" referrerPolicy="no-referrer" />',
         };
 
         const game = new Chess();
@@ -259,21 +266,55 @@
 
         // Multiplayer Logic
         async function createGame() {
-            const gameId = Math.random().toString(36).substring(2, 8).toUpperCase();
-            const gameRef = ref(db, 'games/' + gameId);
-            
-            await set(gameRef, {
-                fen: game.fen(),
-                lastMove: null,
-                players: {
-                    white: playerId,
-                    black: null
-                },
-                status: 'waiting',
-                createdAt: Date.now()
-            });
+            try {
+                const gameId = Math.random().toString(36).substring(2, 8).toUpperCase();
+                const gameRef = ref(db, 'games/' + gameId);
+                
+                await set(gameRef, {
+                    fen: game.fen(),
+                    lastMove: null,
+                    players: {
+                        white: playerId,
+                        black: null
+                    },
+                    status: 'waiting',
+                    createdAt: Date.now()
+                });
 
-            joinGame(gameId);
+                joinGame(gameId);
+            } catch (error) {
+                console.error("Firebase Error:", error);
+                if (error.message.includes("PERMISSION_DENIED")) {
+                    showPermissionError();
+                } else {
+                    alert("Failed to create game: " + error.message);
+                }
+            }
+        }
+
+        function showPermissionError() {
+            const errorHtml = `
+                <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+                    <div class="bg-[#2a2a2a] p-8 rounded-3xl border border-red-500/30 max-w-md w-full shadow-2xl">
+                        <h2 class="text-2xl font-bold text-red-400 mb-4">Firebase Permission Denied</h2>
+                        <p class="text-white/70 mb-6 text-sm leading-relaxed">
+                            Your Firebase Realtime Database rules are preventing the app from writing data. 
+                            To fix this, go to your <b>Firebase Console</b> > <b>Realtime Database</b> > <b>Rules</b> and paste:
+                        </p>
+                        <pre class="bg-black/40 p-4 rounded-xl text-xs font-mono text-indigo-300 mb-6 overflow-x-auto">
+{
+  "rules": {
+    ".read": "true",
+    ".write": "true"
+  }
+}</pre>
+                        <button onclick="location.reload()" class="w-full py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
+                            I've updated the rules, reload
+                        </button>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', errorHtml);
         }
 
         async function joinGame(gameId) {
@@ -405,12 +446,19 @@
                     promotion: 'q'
                 });
                 if (result) {
-                    const gameRef = ref(db, 'games/' + currentGameId);
-                    await update(gameRef, {
-                        fen: game.fen(),
-                        lastMove: result
-                    });
-                    selectedSquare = null;
+                    try {
+                        const gameRef = ref(db, 'games/' + currentGameId);
+                        await update(gameRef, {
+                            fen: game.fen(),
+                            lastMove: result
+                        });
+                        selectedSquare = null;
+                    } catch (error) {
+                        console.error("Move Error:", error);
+                        if (error.message.includes("PERMISSION_DENIED")) {
+                            showPermissionError();
+                        }
+                    }
                     return;
                 }
             }

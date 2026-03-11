@@ -12,27 +12,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♔</text></svg>">
-    <title>Cess</title>
+    <title>Grandmaster Chess Multiplayer</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
     <style>
         body {
             font-family: 'Inter', sans-serif;
-            background: radial-gradient(circle at 50% 50%, #1e1b4b 0%, #0f172a 100%);
+            background: radial-gradient(circle at 50% 50%, #2a2a2a 0%, #1a1a1a 100%);
             min-height: 100vh;
             color: white;
-            overflow-x: hidden;
         }
         .chess-board {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             grid-template-rows: repeat(8, 1fr);
             aspect-ratio: 1 / 1;
-            border: 8px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 0 50px rgba(129, 140, 248, 0.2);
-            border-radius: 12px;
-            overflow: hidden;
+            border: 4px solid #b58863;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
         }
         .square {
             position: relative;
@@ -40,112 +37,13 @@
             align-items: center;
             justify-content: center;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: background-color 0.2s;
         }
         .square.light { background-color: var(--board-light, #f0d9b5); }
         .square.dark { background-color: var(--board-dark, #b58863); }
-        .square.selected { background-color: rgba(129, 140, 248, 0.4) !important; box-shadow: inset 0 0 20px rgba(129, 140, 248, 0.6); }
-        .square.last-move { background-color: rgba(255, 255, 255, 0.1) !important; }
-        .square.check { background-color: rgba(239, 68, 68, 0.4) !important; box-shadow: inset 0 0 30px rgba(239, 68, 68, 0.6); }
-        
-        .mana-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            background: rgba(255, 255, 255, 0.1);
-            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
-        }
-        .mana-dot.filled {
-            background: #818cf8;
-            box-shadow: 0 0 10px #818cf8, 0 0 20px rgba(129, 140, 248, 0.4);
-            transform: scale(1.1);
-        }
-
-        .ability-btn {
-            transition: all 0.2s;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        .ability-btn:not(:disabled):hover {
-            background: rgba(129, 140, 248, 0.2);
-            border-color: rgba(129, 140, 248, 0.4);
-            transform: translateY(-2px);
-        }
-        .ability-btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-        .ability-btn.active {
-            background: #818cf8 !important;
-            color: white !important;
-            box-shadow: 0 0 15px rgba(129, 140, 248, 0.5);
-        }
-
-        .piece-unicode {
-            font-size: 3.5rem;
-            line-height: 1;
-            user-select: none;
-            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 100%;
-            height: 100%;
-        }
-        .piece-white {
-            color: #ffffff;
-            text-shadow: 0 0 2px #000, 0 0 5px rgba(0,0,0,0.5);
-        }
-        .piece-black {
-            color: #1e1b4b;
-            text-shadow: 0 0 2px #fff, 0 0 5px rgba(255,255,255,0.3);
-        }
-
-        .frozen-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(103, 232, 249, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.5rem;
-            pointer-events: none;
-            z-index: 25;
-            backdrop-filter: blur(1px);
-        }
-        .shield-overlay {
-            position: absolute;
-            inset: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.5rem;
-            color: rgba(56, 189, 248, 0.4);
-            pointer-events: none;
-            z-index: 25;
-            animation: pulse 2s infinite;
-        }
-        .wall-piece {
-            width: 80%;
-            height: 80%;
-            background: linear-gradient(135deg, #64748b, #334155);
-            border: 2px solid #94a3b8;
-            border-radius: 4px;
-            position: relative;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-        }
-        .wall-piece::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background-image: linear-gradient(0deg, transparent 24%, rgba(255,255,255,.05) 25%, rgba(255,255,255,.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.05) 75%, rgba(255,255,255,.05) 76%, transparent 77%, transparent), linear-gradient(90deg, transparent 24%, rgba(255,255,255,.05) 25%, rgba(255,255,255,.05) 26%, transparent 27%, transparent 74%, rgba(255,255,255,.05) 75%, rgba(255,255,255,.05) 76%, transparent 77%, transparent);
-            background-size: 10px 10px;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.3; transform: scale(1); }
-            50% { opacity: 0.6; transform: scale(1.1); }
-        }
+        .square.selected { background-color: #ffcf8b !important; opacity: 0.9; }
+        .square.last-move { background-color: rgba(255, 255, 51, 0.4) !important; }
+        .square.check { background-color: rgba(239, 68, 68, 0.6) !important; }
         
         .theme-dot {
             width: 24px;
@@ -212,72 +110,46 @@
     </style>
 </head>
 <body class="antialiased">
-   <!-- Title Screen -->
-<div id="title-screen" class="min-h-screen flex flex-col items-center justify-center p-4">
-    <div class="max-w-md w-full text-center space-y-8">
-        <div class="space-y-4">
-            <div class="w-24 h-24 bg-slate-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-slate-500/40 mx-auto transform -rotate-6">
-                <svg class="w-14 h-14 text-white" viewBox="0 0 24 24" fill="currentColor">
-                    <!-- Clean chess pawn icon -->
-                    <path d="M12 3a3 3 0 100 6 3 3 0 000-6zm-4 9c0-1.657 1.79-3 4-3s4 1.343 4 3c0 1.03-.69 1.94-1.74 2.48L15 18H9l.74-3.52C8.69 13.94 8 13.03 8 12zm-2 8h12v2H6v-2z"/>
-                </svg>
-            </div>
-
-            <h1 class="text-5xl font-black tracking-tighter">Cess</h1>
-            <p class="text-white/50 font-medium">Multiplayer Real-time Strategy</p>
-
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-500/10 border border-slate-500/20 rounded-full mt-4">
-                <span class="text-[10px] text-slate-300 uppercase font-black tracking-widest">Your Rating</span>
-                <span id="title-elo-display" class="text-sm font-mono font-bold text-white">1200</span>
-            </div>
-        </div>
-
-        <div class="space-y-4 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-xl">
-
-            <div class="flex gap-2 mb-4">
-                <button id="mode-online-toggle" class="flex-1 py-2 bg-slate-500 text-white font-bold rounded-xl border border-slate-400 text-xs">
-                    Online PvP
-                </button>
-
-                <button id="mode-local-toggle" class="flex-1 py-2 bg-white/5 text-white/60 font-bold rounded-xl border border-white/10 text-xs hover:bg-white/10">
-                    Local 1v1
-                </button>
-            </div>
-
-            <button id="create-game-btn" class="w-full py-4 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-slate-500/20 flex items-center justify-center gap-2">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-                <span id="start-btn-text">Create New Game</span>
-            </button>
-
-            <button id="customize-loadout-btn" class="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all border border-white/10 flex items-center justify-center gap-2">
-                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-                </svg>
-                Customize Piece Skins
-            </button>
-
-            <div class="relative py-4">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-white/10"></div>
+    <!-- Title Screen -->
+    <div id="title-screen" class="min-h-screen flex flex-col items-center justify-center p-4">
+        <div class="max-w-md w-full text-center space-y-8">
+            <div class="space-y-4">
+                <div class="w-24 h-24 bg-indigo-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 mx-auto transform -rotate-6">
+                    <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                 </div>
-                <div class="relative flex justify-center text-xs uppercase">
-                    <span class="bg-[#1a1a1a] px-2 text-white/30">Or Join Game</span>
+                <h1 class="text-5xl font-black tracking-tighter title-gradient">GRANDMASTER CHESS</h1>
+                <p class="text-white/50 font-medium">Multiplayer Real-time Strategy</p>
+                <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full mt-4">
+                    <span class="text-[10px] text-indigo-300 uppercase font-black tracking-widest">Your Rating</span>
+                    <span id="title-elo-display" class="text-sm font-mono font-bold text-white">1200</span>
                 </div>
             </div>
 
-            <div class="flex gap-2">
-                <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-slate-500/50">
-
-                <button id="join-game-btn" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
-                    Join
+            <div class="space-y-4 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-xl">
+                <button id="create-game-btn" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    Create New Game
                 </button>
-            </div>
+                
+                <button id="customize-loadout-btn" class="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all border border-white/10 flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                    Customize Piece Skins
+                </button>
+                
+                <div class="relative py-4">
+                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
+                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-[#1a1a1a] px-2 text-white/30">Or Join Game</span></div>
+                </div>
 
+                <div class="flex gap-2">
+                    <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                    <button id="join-game-btn" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
+                        Join
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
-</div>
 
     <!-- Loadout Screen -->
     <div id="loadout-screen" class="min-h-screen flex flex-col items-center justify-center p-4 hidden">
@@ -311,7 +183,7 @@
                 <div class="flex items-center justify-center gap-3 bg-white/5 py-2 px-4 rounded-xl border border-white/10 w-fit mx-auto mt-4">
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] text-white/40 uppercase font-bold tracking-widest">Room Code:</span>
-                        <span id="lobby-game-id" class="font-mono text-slate-400 font-bold text-lg">------</span>
+                        <span id="lobby-game-id" class="font-mono text-indigo-400 font-bold text-lg">------</span>
                     </div>
                     <button onclick="copyGameId()" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors border border-white/5">
                         <svg class="w-4 h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
@@ -326,15 +198,15 @@
                     <div class="grid grid-cols-1 gap-3">
                         <button id="mode-regular-btn" class="p-4 bg-white/5 border border-white/10 rounded-2xl text-left transition-all hover:bg-white/10 group">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="font-bold text-white group-hover:text-slate-400">Regular Chess</span>
-                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-slate-500 hidden"></div></div>
+                                <span class="font-bold text-white group-hover:text-indigo-400">Regular Chess</span>
+                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-indigo-500 hidden"></div></div>
                             </div>
                             <p class="text-xs text-white/40">Standard 8x8 board, classic rules, no special abilities.</p>
                         </button>
-                        <button id="mode-custom-btn" class="p-4 bg-white/5 border border-slate-500/50 rounded-2xl text-left transition-all hover:bg-white/10 group active-mode">
+                        <button id="mode-custom-btn" class="p-4 bg-white/5 border border-indigo-500/50 rounded-2xl text-left transition-all hover:bg-white/10 group active-mode">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="font-bold text-white group-hover:text-slate-400">Custom Chess</span>
-                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-slate-500"></div></div>
+                                <span class="font-bold text-white group-hover:text-indigo-400">Custom Chess</span>
+                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-indigo-500"></div></div>
                             </div>
                             <p class="text-xs text-white/40">Variable board size, custom piece layouts, and special skins active.</p>
                         </button>
@@ -349,14 +221,14 @@
                             <label class="text-xs text-white/60 block mb-2">Board Size</label>
                             <div class="grid grid-cols-3 gap-2">
                                 <button onclick="setBoardSize(6)" class="size-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">6x6</button>
-                                <button onclick="setBoardSize(8)" class="size-btn py-2 bg-slate-500 border border-slate-400 rounded-xl text-xs font-bold">8x8</button>
+                                <button onclick="setBoardSize(8)" class="size-btn py-2 bg-indigo-500 border border-indigo-400 rounded-xl text-xs font-bold">8x8</button>
                                 <button onclick="setBoardSize(10)" class="size-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">10x10</button>
                             </div>
                         </div>
                         <div>
                             <label class="text-xs text-white/60 block mb-2">Piece Set</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <button onclick="setPieceSet('standard')" class="piece-set-btn py-2 bg-slate-500 border border-slate-400 rounded-xl text-xs font-bold">Standard</button>
+                                <button onclick="setPieceSet('standard')" class="piece-set-btn py-2 bg-indigo-500 border border-indigo-400 rounded-xl text-xs font-bold">Standard</button>
                                 <button onclick="setPieceSet('chaos')" class="piece-set-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">Chaos</button>
                             </div>
                         </div>
@@ -379,16 +251,16 @@
         <!-- Header -->
         <header class="w-full h-16 border-b border-white/10 flex items-center justify-between px-8 bg-black/20 backdrop-blur-md sticky top-0 z-50">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-slate-500 rounded-lg flex items-center justify-center shadow-lg shadow-slate-500/20">
+                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                 </div>
-                <h1 class="text-lg font-bold tracking-tight hidden sm:block">Grandmaster <span class="text-slate-400">Chess</span></h1>
+                <h1 class="text-lg font-bold tracking-tight hidden sm:block">Grandmaster <span class="text-indigo-400">Chess</span></h1>
             </div>
             
             <div class="flex items-center gap-4">
                 <div class="bg-white/5 px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
                     <span class="text-xs text-white/40 uppercase font-bold tracking-wider">Game ID:</span>
-                    <span id="display-game-id" class="font-mono text-slate-400 font-bold">------</span>
+                    <span id="display-game-id" class="font-mono text-indigo-400 font-bold">------</span>
                     <button onclick="copyGameId()" class="p-1 hover:bg-white/10 rounded transition-colors">
                         <svg class="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                     </button>
@@ -431,7 +303,7 @@
                                 <p class="text-xs text-white/40 font-bold uppercase tracking-widest">You are playing as</p>
                                 <div class="flex items-center gap-2">
                                     <p id="player-role-text" class="font-bold text-white">Assigning...</p>
-                                    <span id="player-elo-badge" class="text-[10px] bg-slate-500/20 text-slate-300 px-2 py-0.5 rounded-md font-mono font-bold border border-slate-500/30">1200</span>
+                                    <span id="player-elo-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-md font-mono font-bold border border-indigo-500/30">1200</span>
                                 </div>
                             </div>
                         </div>
@@ -447,51 +319,27 @@
 
                 <!-- Sidebar -->
                 <div class="w-full lg:w-80 flex flex-col gap-4">
-                    <!-- Status & Mana -->
-                    <div class="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 flex flex-col gap-4">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div id="turn-indicator" class="w-4 h-4 rounded-full bg-white shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
-                                <span id="status-text" class="text-sm font-bold uppercase tracking-widest">White's Turn</span>
-                            </div>
-                            <div id="check-badge" class="hidden px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-black rounded border border-red-500/30 animate-pulse">CHECK</div>
-                        </div>
-
-                        <!-- Mana Bar -->
-                        <div class="space-y-2">
-                            <div class="flex justify-between text-[10px] uppercase tracking-widest text-white/40 font-bold">
-                                <span>Mana Essence</span>
-                                <span id="mana-count">1/10</span>
-                            </div>
-                            <div id="mana-bar" class="flex gap-1 justify-between">
-                                <div class="mana-dot"></div><div class="mana-dot"></div><div class="mana-dot"></div><div class="mana-dot"></div><div class="mana-dot"></div>
-                                <div class="mana-dot"></div><div class="mana-dot"></div><div class="mana-dot"></div><div class="mana-dot"></div><div class="mana-dot"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Ability Panel -->
-                    <div id="ability-panel" class="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 flex flex-col gap-4">
-                        <h3 class="text-xs font-bold text-white/40 uppercase tracking-widest">Piece Abilities</h3>
-                        <div id="abilities-list" class="space-y-2">
-                            <!-- Abilities will be injected here -->
-                        </div>
-                    </div>
-
                     <!-- Themes -->
                     <div class="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 flex flex-col gap-4">
-                        <h3 class="text-xs font-bold text-white/40 uppercase tracking-widest">Board Theme</h3>
-                        <div class="flex flex-wrap gap-2" id="board-themes">
+                        <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest">Board Theme</h3>
+                        <div class="flex gap-3" id="board-themes">
                             <div class="theme-dot active" style="background: linear-gradient(135deg, #f0d9b5 50%, #b58863 50%)" onclick="setBoardTheme('classic')"></div>
+                            <div class="theme-dot" style="background: linear-gradient(135deg, #f0d9b5 50%, #769656 50%)" onclick="setBoardTheme('emerald')"></div>
                             <div class="theme-dot" style="background: linear-gradient(135deg, #dee3e6 50%, #8ca2ad 50%)" onclick="setBoardTheme('ocean')"></div>
                             <div class="theme-dot" style="background: linear-gradient(135deg, #4b4b4b 50%, #2a2a2a 50%)" onclick="setBoardTheme('midnight')"></div>
-                            <div class="theme-dot" style="background: linear-gradient(135deg, #67e8f9 50%, #0e7490 50%)" onclick="setBoardTheme('ocean_depths')"></div>
-                            <div class="theme-dot" style="background: linear-gradient(135deg, #86efac 50%, #166534 50%)" onclick="setBoardTheme('emerald_forest')"></div>
-                            <div class="theme-dot" style="background: linear-gradient(135deg, #fca5a5 50%, #991b1b 50%)" onclick="setBoardTheme('volcanic')"></div>
-                            <div class="theme-dot" style="background: linear-gradient(135deg, #d8b4fe 50%, #6b21a8 50%)" onclick="setBoardTheme('royal_purple')"></div>
+                        </div>
+                        
+                        <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest mt-2">Piece Style</h3>
+                        <div class="grid grid-cols-2 gap-2" id="piece-themes">
+                            <button onclick="setPieceTheme('wikipedia')" class="px-2 py-1 text-xs bg-white/10 rounded-lg hover:bg-white/20 border border-white/10 active-piece">Wikipedia</button>
+                            <button onclick="setPieceTheme('alpha')" class="px-2 py-1 text-xs bg-white/10 rounded-lg hover:bg-white/20 border border-white/10">Alpha</button>
+                        </div>
+
+                        <h3 class="text-sm font-bold text-white/40 uppercase tracking-widest mt-2">Active Abilities</h3>
+                        <div id="active-abilities" class="space-y-2">
+                            <p class="text-[10px] text-white/30 italic">Select skins in loadout to see abilities here.</p>
                         </div>
                     </div>
-                </div>
 
                     <div class="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 flex flex-col gap-4 h-[300px] lg:h-[400px]">
                         <h3 class="text-xl font-bold border-b border-white/10 pb-2">Move History</h3>
@@ -508,19 +356,9 @@
             <div class="bg-[#2a2a2a] p-8 rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl text-center">
                 <h2 id="modal-title" class="text-3xl font-bold mb-2">Checkmate!</h2>
                 <p id="modal-body" class="text-white/70 mb-6">White wins the game.</p>
-                <button onclick="location.reload()" class="w-full py-4 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-slate-500/20">
+                <button onclick="location.reload()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20">
                     Back to Menu
                 </button>
-            </div>
-        </div>
-
-        <!-- Promotion Modal -->
-        <div id="promotion-modal" class="fixed inset-0 z-[100] hidden flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
-            <div class="bg-[#2a2a2a] p-8 rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl text-center">
-                <h2 class="text-2xl font-bold mb-4">Promote Pawn</h2>
-                <div class="grid grid-cols-2 gap-4" id="promotion-options">
-                    <!-- Options injected here -->
-                </div>
             </div>
         </div>
     </div>
@@ -549,11 +387,7 @@
             classic: { light: '#f0d9b5', dark: '#b58863' },
             emerald: { light: '#f0d9b5', dark: '#769656' },
             ocean: { light: '#dee3e6', dark: '#8ca2ad' },
-            midnight: { light: '#4b4b4b', dark: '#2a2a2a' },
-            ocean_depths: { light: '#67e8f9', dark: '#0e7490', accent: '#22d3ee' },
-            emerald_forest: { light: '#86efac', dark: '#166534', accent: '#2dd4bf' },
-            volcanic: { light: '#fca5a5', dark: '#991b1b', accent: '#fb923c' },
-            royal_purple: { light: '#d8b4fe', dark: '#6b21a8', accent: '#8b5cf6' }
+            midnight: { light: '#4b4b4b', dark: '#2a2a2a' }
         };
 
         let currentPieceTheme = 'wikipedia';
@@ -568,100 +402,76 @@
         let opponentSkins = {};
 
         const SKIN_ABILITIES = {
-            k: {
-                classic: { name: 'Classic', desc: 'Standard King moves.', cost: 0 },
-                shield: { name: 'Shield King', desc: 'Royal Guard: King cannot be put into check this turn. Capture blocked.', cost: 3, accent: '#38bdf8' },
-                warp: { name: 'Warp King', desc: 'Royal Warp: Teleport to any empty adjacent square.', cost: 4, accent: '#a78bfa' }
-            },
             p: {
-                classic: { name: 'Classic', desc: 'Standard pawn moves.', cost: 0 },
-                scout: { name: 'Scout', desc: 'Can move 2 squares forward at any time.', cost: 0 },
-                vanguard: { name: 'Vanguard', desc: 'Can move 1 square diagonally forward (non-capture).', cost: 0 },
-                ghost: { name: 'Ghost', desc: 'Can leap over a piece forward.', cost: 0 },
-                berserker: { name: 'Berserker Pawn', desc: 'Berserk Rush: Charge forward 2 squares. Ends turn.', cost: 1, accent: '#f97316' },
-                miner: { name: 'Miner', desc: 'Can move 1 square backward.', cost: 0 },
-                piggy: { name: 'Piggy', desc: 'Can move 1 square diagonally backward.', cost: 0 },
-                clockwork: { name: 'Clockwork', desc: 'Can move 1 square backward or sideways.', cost: 0 },
-                demogorgon: { name: 'Demogorgon', desc: 'Can capture 2 squares diagonally forward.', cost: 0 },
-                shelly: { name: 'Shelly', desc: 'Can move 2 squares forward.', cost: 0 },
-                gambler: { name: 'Gambler', desc: 'Random ability each move.', cost: 0 }
+                classic: { name: 'Classic', desc: 'Standard pawn moves.' },
+                scout: { name: 'Scout', desc: 'Can move 2 squares forward at any time.' },
+                vanguard: { name: 'Vanguard', desc: 'Can move 1 square diagonally forward (non-capture).' },
+                ghost: { name: 'Ghost', desc: 'Can leap over a piece forward.' },
+                berserker: { name: 'Berserker', desc: 'Can move 1 square sideways.' },
+                miner: { name: 'Miner', desc: 'Can move 1 square backward.' },
+                piggy: { name: 'Piggy', desc: 'Can move 1 square diagonally backward.' },
+                clockwork: { name: 'Clockwork', desc: 'Can move 1 square backward or sideways.' },
+                demogorgon: { name: 'Demogorgon', desc: 'Can capture 2 squares diagonally forward.' },
+                shelly: { name: 'Shelly', desc: 'Can move 2 squares forward.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             n: {
-                classic: { name: 'Classic', desc: 'Standard L-shape.', cost: 0 },
-                lancer: { name: 'Lancer', desc: 'Can move in 3x1 L-shape as well.', cost: 0 },
-                templar: { name: 'Templar', desc: 'Can move 2 squares orthogonally.', cost: 0 },
-                paladin: { name: 'Paladin', desc: 'Can move 1 square in any direction.', cost: 0 },
-                pegasus: { name: 'Pegasus', desc: 'Can move 2 squares in any direction.', cost: 0 },
-                centaur: { name: 'Centaur', desc: 'Can move 3 squares in any direction.', cost: 0 },
-                boar: { name: 'Boar', desc: 'Can charge 3 squares orthogonally.', cost: 0 },
-                chronos: { name: 'Chronos', desc: 'Can leap 4 squares orthogonally.', cost: 0 },
-                eleven: { name: 'Eleven', desc: 'Can move 2 squares diagonally.', cost: 0 },
-                elprimo: { name: 'El Primo', desc: 'Can leap 3 squares in any direction.', cost: 0 },
-                shadow: { name: 'Shadow Knight', desc: 'Shadow Step: Teleport to any empty square. Ends turn.', cost: 3, accent: '#c084fc' },
-                gambler: { name: 'Gambler', desc: 'Random ability each move.', cost: 0 }
+                classic: { name: 'Classic', desc: 'Standard L-shape.' },
+                lancer: { name: 'Lancer', desc: 'Can move in 3x1 L-shape as well.' },
+                templar: { name: 'Templar', desc: 'Can move 2 squares orthogonally.' },
+                paladin: { name: 'Paladin', desc: 'Can move 1 square in any direction.' },
+                pegasus: { name: 'Pegasus', desc: 'Can move 2 squares in any direction.' },
+                centaur: { name: 'Centaur', desc: 'Can move 3 squares in any direction.' },
+                boar: { name: 'Boar', desc: 'Can charge 3 squares orthogonally.' },
+                chronos: { name: 'Chronos', desc: 'Can leap 4 squares orthogonally.' },
+                eleven: { name: 'Eleven', desc: 'Can move 2 squares diagonally.' },
+                elprimo: { name: 'El Primo', desc: 'Can leap 3 squares in any direction.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             b: {
-                classic: { name: 'Classic', desc: 'Standard diagonal.', cost: 0 },
-                mystic: { name: 'Mystic', desc: 'Can move 1 square orthogonally.', cost: 0 },
-                oracle: { name: 'Oracle', desc: 'Can jump over 1 piece diagonally.', cost: 0 },
-                inquisitor: { name: 'Inquisitor', desc: 'Can leap 3 squares diagonally.', cost: 0 },
-                monk: { name: 'Monk', desc: 'Can move 1 square orthogonally.', cost: 0 },
-                zealot: { name: 'Zealot', desc: 'Can move 2 squares orthogonally.', cost: 0 },
-                truffle: { name: 'Truffle', desc: 'Can move 1 square in any direction.', cost: 0 },
-                pendulum: { name: 'Pendulum', desc: 'Can leap 2 squares diagonally.', cost: 0 },
-                mindflayer: { name: 'Mind Flayer', desc: 'Can move 2 squares orthogonally.', cost: 0 },
-                piper: { name: 'Piper', desc: 'Can leap 4 squares diagonally.', cost: 0 },
-                holy: { name: 'Holy Bishop', desc: 'Resurrect: Spawn a new pawn on starting row.', cost: 3, accent: '#fde68a' },
-                gambler: { name: 'Gambler', desc: 'Random ability each move.', cost: 0 }
+                classic: { name: 'Classic', desc: 'Standard diagonal.' },
+                mystic: { name: 'Mystic', desc: 'Can move 1 square orthogonally.' },
+                oracle: { name: 'Oracle', desc: 'Can jump over 1 piece diagonally.' },
+                inquisitor: { name: 'Inquisitor', desc: 'Can leap 3 squares diagonally.' },
+                monk: { name: 'Monk', desc: 'Can move 1 square orthogonally.' },
+                zealot: { name: 'Zealot', desc: 'Can move 2 squares orthogonally.' },
+                truffle: { name: 'Truffle', desc: 'Can move 1 square in any direction.' },
+                pendulum: { name: 'Pendulum', desc: 'Can leap 2 squares diagonally.' },
+                mindflayer: { name: 'Mind Flayer', desc: 'Can move 2 squares orthogonally.' },
+                piper: { name: 'Piper', desc: 'Can leap 4 squares diagonally.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             r: {
-                classic: { name: 'Classic', desc: 'Standard straight.', cost: 0 },
-                juggernaut: { name: 'Juggernaut', desc: 'Can move 1 square diagonally.', cost: 0 },
-                sentinel: { name: 'Sentinel', desc: 'Can leap 2 squares diagonally.', cost: 0 },
-                cannon: { name: 'Cannon', desc: 'Can jump over 1 piece orthogonally.', cost: 0 },
-                fortress: { name: 'Fortress Rook', desc: 'Stone Wall: Place indestructible wall for 2 turns.', cost: 2, accent: '#94a3b8' },
-                siege: { name: 'Siege', desc: 'Can move 2 squares diagonally.', cost: 0 },
-                ironhog: { name: 'Iron Hog', desc: 'Can move 2 squares diagonally.', cost: 0 },
-                timekeeper: { name: 'Timekeeper', desc: 'Can leap 3 squares orthogonally.', cost: 0 },
-                upsidedown: { name: 'Upside Down', desc: 'Can move through pieces orthogonally.', cost: 0 },
-                bull: { name: 'Bull', desc: 'Can charge 4 squares orthogonally.', cost: 0 },
-                gambler: { name: 'Gambler', desc: 'Random ability each move.', cost: 0 }
+                classic: { name: 'Classic', desc: 'Standard straight.' },
+                juggernaut: { name: 'Juggernaut', desc: 'Can move 1 square diagonally.' },
+                sentinel: { name: 'Sentinel', desc: 'Can leap 2 squares diagonally.' },
+                cannon: { name: 'Cannon', desc: 'Can jump over 1 piece orthogonally.' },
+                fortress: { name: 'Fortress', desc: 'Can move 1 square diagonally.' },
+                siege: { name: 'Siege', desc: 'Can move 2 squares diagonally.' },
+                ironhog: { name: 'Iron Hog', desc: 'Can move 2 squares diagonally.' },
+                timekeeper: { name: 'Timekeeper', desc: 'Can leap 3 squares orthogonally.' },
+                upsidedown: { name: 'Upside Down', desc: 'Can move through pieces orthogonally.' },
+                bull: { name: 'Bull', desc: 'Can charge 4 squares orthogonally.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             },
             q: {
-                classic: { name: 'Classic', desc: 'Standard Queen.', cost: 0 },
-                empress: { name: 'Empress', desc: 'Combines Queen + Knight moves.', cost: 0 },
-                goddess: { name: 'Goddess', desc: 'Queen + 2-square leap in any direction.', cost: 0 },
-                archon: { name: 'Archon', desc: 'Can leap 3 squares in any direction.', cost: 0 },
-                seraph: { name: 'Seraph', desc: 'Can move 2 squares in any direction.', cost: 0 },
-                avatar: { name: 'Avatar', desc: 'Can move 3 squares in any direction.', cost: 0 },
-                pigqueen: { name: 'Pig Queen', desc: 'Can leap 4 squares in any direction.', cost: 0 },
-                grandclock: { name: 'Grand Clock', desc: 'Can move 4 squares in any direction.', cost: 0 },
-                vecna: { name: 'Vecna', desc: 'Can leap 5 squares in any direction.', cost: 0 },
-                mortis: { name: 'Mortis', desc: 'Can dash 2 squares in any direction.', cost: 0 },
-                frost: { name: 'Frost Queen', desc: 'Freeze: Freeze enemy piece for 1 turn.', cost: 2, accent: '#67e8f9' },
-                storm: { name: 'Storm Queen', desc: 'Lightning Strike: Destroy any enemy pawn.', cost: 3, accent: '#facc15' },
-                gambler: { name: 'Gambler', desc: 'Random ability each move.', cost: 0 }
+                classic: { name: 'Classic', desc: 'Standard Queen.' },
+                empress: { name: 'Empress', desc: 'Combines Queen + Knight moves.' },
+                goddess: { name: 'Goddess', desc: 'Queen + 2-square leap in any direction.' },
+                archon: { name: 'Archon', desc: 'Can leap 3 squares in any direction.' },
+                seraph: { name: 'Seraph', desc: 'Can move 2 squares in any direction.' },
+                avatar: { name: 'Avatar', desc: 'Can move 3 squares in any direction.' },
+                pigqueen: { name: 'Pig Queen', desc: 'Can leap 4 squares in any direction.' },
+                grandclock: { name: 'Grand Clock', desc: 'Can move 4 squares in any direction.' },
+                vecna: { name: 'Vecna', desc: 'Can leap 5 squares in any direction.' },
+                mortis: { name: 'Mortis', desc: 'Can dash 2 squares in any direction.' },
+                gambler: { name: 'Gambler', desc: 'Random ability each move.' }
             }
         };
 
         function getPieceUrl(piece) {
             return `https://chessboardjs.com/img/chesspieces/${currentPieceTheme}/${piece}.png`;
         }
-
-        let isLocalMode = false;
-        let mana = { w: 1, b: 0 };
-        let frozenPieces = {}; // { square: turnCount }
-        let shieldedKings = { w: 0, b: 0 }; // turnCount when shield expires
-        let walls = {}; // { square: turnCount }
-        let turnCount = 0;
-        let activeAbility = null; // { type: 'freeze', from: 'a2' }
-        let capturedPieces = { w: [], b: [] };
-        let moveHistory = [];
-
-        const UNICODE_PIECES = {
-            w: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' },
-            b: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
-        };
 
         let game = new Chess();
         let customBoard = null; // Used for non-8x8 boards
@@ -788,7 +598,7 @@
                 
                 Object.keys(SKIN_ABILITIES[type]).forEach(skin => {
                     const btn = document.createElement('button');
-                    btn.className = `flex-1 min-w-[100px] py-2 px-3 text-xs rounded-xl border transition-all ${playerSkins[type] === skin ? 'bg-slate-500 border-slate-400 text-white' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`;
+                    btn.className = `flex-1 min-w-[100px] py-2 px-3 text-xs rounded-xl border transition-all ${playerSkins[type] === skin ? 'bg-indigo-500 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`;
                     btn.innerHTML = `<strong>${SKIN_ABILITIES[type][skin].name}</strong><br><span class="opacity-50 text-[10px]">${SKIN_ABILITIES[type][skin].desc}</span>`;
                     btn.onclick = () => {
                         playerSkins[type] = skin;
@@ -841,9 +651,9 @@
 
             // Mode buttons
             modeRegularBtn.classList.toggle('active-mode', gameConfig.mode === 'regular');
-            modeRegularBtn.classList.toggle('border-slate-500/50', gameConfig.mode === 'regular');
+            modeRegularBtn.classList.toggle('border-indigo-500/50', gameConfig.mode === 'regular');
             modeCustomBtn.classList.toggle('active-mode', gameConfig.mode === 'custom');
-            modeCustomBtn.classList.toggle('border-slate-500/50', gameConfig.mode === 'custom');
+            modeCustomBtn.classList.toggle('border-indigo-500/50', gameConfig.mode === 'custom');
             
             // Radio indicators
             const regRadio = modeRegularBtn.querySelector('.w-2');
@@ -859,16 +669,16 @@
             // Size buttons
             document.querySelectorAll('.size-btn').forEach(btn => {
                 const size = parseInt(btn.innerText);
-                btn.classList.toggle('bg-slate-500', gameConfig.size === size);
-                btn.classList.toggle('border-slate-400', gameConfig.size === size);
+                btn.classList.toggle('bg-indigo-500', gameConfig.size === size);
+                btn.classList.toggle('border-indigo-400', gameConfig.size === size);
                 btn.classList.toggle('bg-white/5', gameConfig.size !== size);
             });
 
             // Piece set buttons
             document.querySelectorAll('.piece-set-btn').forEach(btn => {
                 const set = btn.innerText.toLowerCase();
-                btn.classList.toggle('bg-slate-500', gameConfig.pieceSet === set);
-                btn.classList.toggle('border-slate-400', gameConfig.pieceSet === set);
+                btn.classList.toggle('bg-indigo-500', gameConfig.pieceSet === set);
+                btn.classList.toggle('border-indigo-400', gameConfig.pieceSet === set);
                 btn.classList.toggle('bg-white/5', gameConfig.pieceSet !== set);
             });
 
@@ -1082,7 +892,7 @@
                             Your Firebase Realtime Database rules are preventing the app from writing data. 
                             To fix this, go to your <b>Firebase Console</b> > <b>Realtime Database</b> > <b>Rules</b> and paste:
                         </p>
-                        <pre class="bg-black/40 p-4 rounded-xl text-xs font-mono text-slate-300 mb-6 overflow-x-auto">
+                        <pre class="bg-black/40 p-4 rounded-xl text-xs font-mono text-indigo-300 mb-6 overflow-x-auto">
 {
   "rules": {
     ".read": "true",
@@ -1185,209 +995,15 @@
             return customBoard ? customBoard.turn : 'w';
         }
 
-        function updateManaUI() {
-            const currentTurn = getTurn();
-            const m = mana[currentTurn];
-            manaCountEl.textContent = m;
-            
-            manaDotsEl.innerHTML = '';
-            for (let i = 0; i < 10; i++) {
-                const dot = document.createElement('div');
-                dot.className = `mana-dot ${i < m ? 'filled' : ''}`;
-                manaDotsEl.appendChild(dot);
-            }
-        }
-
-        function updateAbilitiesPanel() {
-            const currentTurn = getTurn();
-            // Only show abilities if it's the player's turn (or local mode)
-            if (!isLocalMode && currentTurn !== playerRole) {
-                abilitiesListEl.innerHTML = '<div class="text-slate-300/50 italic text-sm">Waiting for opponent...</div>';
-                return;
-            }
-
-            const pieces = [];
-            const size = gameConfig.size || 8;
-            const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
-            
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const sq = `${squareNames[c]}${size - r}`;
-                    const p = getPiece(sq);
-                    if (p && p.color === currentTurn) {
-                        const skin = (p.color === 'w' ? playerSkins : opponentSkins)[p.type] || 'classic';
-                        if (skin !== 'classic') {
-                            pieces.push({ square: sq, type: p.type, skin });
-                        }
-                    }
-                }
-            }
-
-            if (pieces.length === 0) {
-                abilitiesListEl.innerHTML = '<div class="text-slate-300/50 italic text-sm">No special pieces on board.</div>';
-                return;
-            }
-
-            abilitiesListEl.innerHTML = '';
-            pieces.forEach(p => {
-                const ability = SKIN_ABILITIES[p.type][p.skin];
-                if (!ability) return;
-
-                const btn = document.createElement('button');
-                btn.className = `ability-btn ${mana[currentTurn] < ability.cost ? 'opacity-50 cursor-not-allowed' : ''} ${activeAbility && activeAbility.from === p.square ? 'ring-2 ring-white' : ''}`;
-                btn.style.borderColor = ability.accent + '44';
-                btn.onclick = () => {
-                    if (mana[currentTurn] >= ability.cost) {
-                        activateAbility(p.square, p.skin, p.type);
-                    }
-                };
-
-                btn.innerHTML = `
-                    <div class="flex justify-between items-center mb-1">
-                        <span class="font-bold text-xs" style="color: ${ability.accent}">${ability.name}</span>
-                        <span class="text-[10px] bg-slate-500/30 px-1.5 rounded-full">${ability.cost} Mana</span>
-                    </div>
-                    <div class="text-[10px] text-slate-200/70 leading-tight">${ability.desc}</div>
-                    <div class="text-[9px] mt-1 text-slate-400/50 uppercase tracking-wider font-bold">${UNICODE_PIECES[currentTurn][p.type]} at ${p.square}</div>
-                `;
-                abilitiesListEl.appendChild(btn);
-            });
-        }
-
-        function activateAbility(square, skin, type) {
-            const ability = SKIN_ABILITIES[type][skin];
-            if (activeAbility && activeAbility.from === square) {
-                activeAbility = null;
-                statusText.innerText = "Ability cancelled.";
-            } else {
-                activeAbility = { type: skin, from: square, cost: ability.cost };
-                statusText.innerText = `Select target for ${ability.name}...`;
-            }
-            createBoard();
-        }
-
         function toggleTurn() {
-            if (gameConfig.size === 8 && !customBoard) {
-                // Standard chess turn toggle is handled by game.move
+            if (gameConfig.size === 8) {
+                let fen = game.fen();
+                const parts = fen.split(' ');
+                parts[1] = parts[1] === 'w' ? 'b' : 'w';
+                game.load(parts.join(' '));
             } else {
                 customBoard.turn = customBoard.turn === 'w' ? 'b' : 'w';
             }
-            
-            turnCount++;
-            const nextTurn = getTurn();
-            
-            // Mana gain
-            mana[nextTurn] = Math.min(10, mana[nextTurn] + 1);
-            
-            // Clear active ability
-            activeAbility = null;
-            
-            updateStatus();
-            createBoard();
-            updateCapturedUI();
-            updateMoveHistoryUI();
-            
-            if (!isLocalMode) {
-                saveGameState();
-            }
-        }
-
-        function updateCapturedUI() {
-            const playerCapturedEl = document.getElementById('player-captured');
-            const opponentCapturedEl = document.getElementById('opponent-captured');
-            
-            if (playerCapturedEl) {
-                playerCapturedEl.innerHTML = capturedPieces[playerRole === 'w' ? 'b' : 'w']
-                    .map(p => `<span class="text-xl opacity-60">${UNICODE_PIECES[p.color][p.type]}</span>`)
-                    .join('');
-            }
-            if (opponentCapturedEl) {
-                opponentCapturedEl.innerHTML = capturedPieces[playerRole]
-                    .map(p => `<span class="text-xl opacity-60">${UNICODE_PIECES[p.color][p.type]}</span>`)
-                    .join('');
-            }
-        }
-
-        function updateMoveHistoryUI() {
-            const historyEl = document.getElementById('move-history');
-            if (!historyEl) return;
-            
-            if (moveHistory.length === 0) {
-                historyEl.innerHTML = '<p class="text-white/40 italic text-sm col-span-2">No moves yet...</p>';
-                return;
-            }
-            
-            historyEl.innerHTML = moveHistory.map((m, i) => `
-                <div class="flex items-center gap-2 text-sm">
-                    <span class="text-white/30 font-mono w-4">${Math.floor(i/2) + 1}${i%2===0?'.':' '}</span>
-                    <span class="text-white font-bold">${m.san || `${m.from}-${m.to}`}</span>
-                </div>
-            `).join('');
-            historyEl.scrollTop = historyEl.scrollHeight;
-        }
-
-        function isKingInCheck(color) {
-            if (gameConfig.size === 8 && !customBoard) {
-                // For standard chess, we can use chess.js but we need to be careful with custom pieces
-                // For now, let's use a custom check detection that's more robust
-            }
-            
-            // Find king
-            let kingPos = null;
-            const size = gameConfig.size || 8;
-            const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
-            
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const sq = `${squareNames[c]}${size - r}`;
-                    const p = getPiece(sq);
-                    if (p && p.type === 'k' && p.color === color) {
-                        kingPos = sq;
-                        break;
-                    }
-                }
-                if (kingPos) break;
-            }
-
-            if (!kingPos) return false;
-            if (shieldedKings[color] > turnCount) return false;
-
-            // Check if any enemy piece can attack kingPos
-            const enemyColor = color === 'w' ? 'b' : 'w';
-            for (let r = 0; r < size; r++) {
-                for (let c = 0; c < size; c++) {
-                    const sq = `${squareNames[c]}${size - r}`;
-                    const p = getPiece(sq);
-                    if (p && p.color === enemyColor) {
-                        const moves = getLegalMoves(sq, true); // true = ignore check safety to avoid recursion
-                        if (moves.some(m => m.to === kingPos)) return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        function updateStatus() {
-            const turn = getTurn();
-            const isCheck = isKingInCheck(turn);
-            
-            let status = "";
-            if (isLocalMode) {
-                status = `Local 1v1 - ${turn === 'w' ? "White's" : "Black's"} Turn`;
-            } else {
-                status = turn === playerRole ? "Your Turn" : "Opponent's Turn";
-            }
-
-            statusText.innerHTML = `
-                <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full ${turn === 'w' ? 'bg-white shadow-[0_0_8px_white]' : 'bg-slate-900 border border-white/20'}"></span>
-                    ${status}
-                    ${isCheck ? '<span class="check-badge">CHECK</span>' : ''}
-                </div>
-            `;
-
-            // Check for game over
-            // (Simplified for now)
         }
 
         function createBoard() {
@@ -1397,7 +1013,7 @@
             boardEl.style.gridTemplateRows = `repeat(${size}, 1fr)`;
             
             const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
-            const isFlipped = playerRole === 'b' && !isLocalMode;
+            const isFlipped = playerRole === 'b';
 
             for (let r = 0; r < size; r++) {
                 const row = isFlipped ? size - 1 - r : r;
@@ -1411,379 +1027,57 @@
                     const squareEl = document.createElement('div');
                     squareEl.className = `square ${isDark ? 'dark' : 'light'}`;
                     squareEl.dataset.square = squareName;
-                    squareEl.onclick = () => handleSquareClick(squareName);
                     
                     if (selectedSquare === squareName) squareEl.classList.add('selected');
+                    if (controlledSquare === squareName) squareEl.classList.add('bg-indigo-500/40', 'ring-4', 'ring-indigo-500', 'z-30');
                     if (lastMove && (lastMove.from === squareName || lastMove.to === squareName)) {
                         squareEl.classList.add('last-move');
                     }
                     
-                    // Check highlight
-                    if (isKingInCheck(getTurn()) && piece && piece.type === 'k' && piece.color === getTurn()) {
+                    // Check highlight (only for 8x8 for now)
+                    if (gameConfig.size === 8 && game.in_check() && piece && piece.type === 'k' && piece.color === game.turn()) {
                         squareEl.classList.add('check');
                     }
 
                     if (piece) {
                         const pieceEl = document.createElement('div');
-                        pieceEl.className = `piece-unicode piece-${piece.color === 'w' ? 'white' : 'black'}`;
-                        pieceEl.textContent = UNICODE_PIECES[piece.color][piece.type];
+                        pieceEl.className = 'piece';
+                        const skin = piece.color === playerRole ? playerSkins[piece.type] : opponentSkins[piece.type];
+                        const hasAbility = skin && skin !== 'classic' && gameConfig.mode !== 'regular';
                         
-                        const skin = (piece.color === 'w' ? playerSkins : opponentSkins)[piece.type] || 'classic';
-                        const ability = SKIN_ABILITIES[piece.type][skin];
+                        pieceEl.innerHTML = `
+                            <img src="${getPieceUrl(piece.color + piece.type.toUpperCase())}" class="w-full h-full object-contain" referrerPolicy="no-referrer" />
+                            ${hasAbility ? '<div class="ability-dot absolute -top-1 -right-1 w-3 h-3 bg-indigo-500 rounded-full border border-white/20 shadow-lg cursor-help"></div>' : ''}
+                        `;
                         
-                        if (ability && ability.accent && gameConfig.mode !== 'regular') {
-                            pieceEl.style.color = ability.accent;
-                            pieceEl.style.filter = `drop-shadow(0 0 8px ${ability.accent}66)`;
-                        }
-
-                        if (skin !== 'classic' && gameConfig.mode !== 'regular') {
-                            const dot = document.createElement('div');
-                            dot.className = 'absolute top-1 right-1 w-2 h-2 rounded-full bg-slate-400 shadow-[0_0_5px_#818cf8] cursor-help';
+                        if (hasAbility) {
+                            const dot = pieceEl.querySelector('.ability-dot');
                             dot.onclick = (e) => {
                                 e.stopPropagation();
                                 const ability = SKIN_ABILITIES[piece.type][skin];
-                                statusText.innerHTML = `
-                                    <div class="flex flex-col gap-1">
-                                        <span class="text-xs font-bold" style="color: ${ability.accent}">${ability.name}</span>
-                                        <span class="text-[10px] text-white/60">${ability.desc}</span>
-                                    </div>
-                                `;
+                                statusText.innerText = `${ability.name}: ${ability.desc}`;
+                                setTimeout(() => updateStatus(), 4000);
                             };
-                            pieceEl.appendChild(dot);
                         }
-
-                        // Frozen overlay
-                        if (frozenPieces[squareName] && frozenPieces[squareName] > turnCount) {
-                            const frozen = document.createElement('div');
-                            frozen.className = 'frozen-overlay';
-                            frozen.innerHTML = '❄';
-                            squareEl.appendChild(frozen);
-                            pieceEl.style.opacity = '0.6';
-                        }
-
-                        // Shield overlay
-                        if (piece.type === 'k' && shieldedKings[piece.color] > turnCount) {
-                            const shield = document.createElement('div');
-                            shield.className = 'shield-overlay';
-                            shield.innerHTML = '⬡';
-                            squareEl.appendChild(shield);
-                        }
-
                         squareEl.appendChild(pieceEl);
                     }
 
-                    // Wall
-                    if (walls[squareName] && walls[squareName] > turnCount) {
-                        const wall = document.createElement('div');
-                        wall.className = 'wall-piece';
-                        squareEl.appendChild(wall);
+                    if (selectedSquare && getTurn() === playerRole) {
+                        const moves = getLegalMoves(selectedSquare);
+                        const move = moves.find(m => m.to === squareName);
+                        if (move) {
+                            const indicator = document.createElement('div');
+                            indicator.className = piece ? 'capture-indicator' : 'move-indicator';
+                            squareEl.appendChild(indicator);
+                        }
                     }
 
+                    squareEl.onclick = () => handleSquareClick(squareName);
                     boardEl.appendChild(squareEl);
                 }
             }
-            updateManaUI();
-            updateAbilitiesPanel();
-        }
-
-        async function handleSquareClick(square) {
-            const turn = getTurn();
-            if (!isLocalMode && turn !== playerRole) return;
-
-            // Move Mode Logic (Cheat)
-            if (moveModeActive) {
-                const piece = getPiece(square);
-                if (piece && (isLocalMode || piece.color === playerRole)) {
-                    controlledSquare = square;
-                    statusText.innerText = `Controlling ${square.toUpperCase()} (WASD to move, Space to release)`;
-                    createBoard();
-                    return;
-                }
-            }
-
-            // Handle active ability targeting
-            if (activeAbility) {
-                const ability = SKIN_ABILITIES[getPiece(activeAbility.from).type][activeAbility.type];
-                
-                // Ability Logic
-                if (activeAbility.type === 'freeze') {
-                    const target = getPiece(square);
-                    if (target && target.color !== turn && target.type !== 'k') {
-                        frozenPieces[square] = turnCount + 2; // Freeze for 1 full turn cycle
-                        mana[turn] -= activeAbility.cost;
-                        activeAbility = null;
-                        toggleTurn();
-                        return;
-                    }
-                } else if (activeAbility.type === 'storm') {
-                    const target = getPiece(square);
-                    if (target && target.color !== turn && target.type === 'p') {
-                        removePiece(square);
-                        mana[turn] -= activeAbility.cost;
-                        activeAbility = null;
-                        toggleTurn();
-                        return;
-                    }
-                } else if (activeAbility.type === 'fortress') {
-                    if (!getPiece(square)) {
-                        walls[square] = turnCount + 4; // 2 turns
-                        mana[turn] -= activeAbility.cost;
-                        activeAbility = null;
-                        toggleTurn();
-                        return;
-                    }
-                } else if (activeAbility.type === 'holy') {
-                    const p = getPiece(activeAbility.from);
-                    const startRow = p.color === 'w' ? 2 : (gameConfig.size || 8) - 1;
-                    const targetRow = parseInt(square.substring(1));
-                    if (!getPiece(square) && targetRow === startRow) {
-                        addPiece(square, { type: 'p', color: turn });
-                        mana[turn] -= activeAbility.cost;
-                        activeAbility = null;
-                        toggleTurn();
-                        return;
-                    }
-                } else if (activeAbility.type === 'shadow') {
-                    if (!getPiece(square)) {
-                        movePiece(activeAbility.from, square);
-                        mana[turn] -= activeAbility.cost;
-                        activeAbility = null;
-                        toggleTurn();
-                        return;
-                    }
-                } else if (activeAbility.type === 'berserker') {
-                    // Handled in getLegalMoves usually, but let's do it here for simplicity
-                    const moves = getLegalMoves(activeAbility.from);
-                    const move = moves.find(m => m.to === square);
-                    if (move) {
-                        executeMove(move);
-                        mana[turn] -= activeAbility.cost;
-                        activeAbility = null;
-                        return;
-                    }
-                } else if (activeAbility.type === 'shield') {
-                    if (square === activeAbility.from) {
-                        shieldedKings[turn] = turnCount + 2;
-                        mana[turn] -= activeAbility.cost;
-                        activeAbility = null;
-                        toggleTurn();
-                        return;
-                    }
-                } else if (activeAbility.type === 'warp') {
-                    const from = activeAbility.from;
-                    const fromCol = from.charCodeAt(0) - 97;
-                    const fromRow = parseInt(from.substring(1));
-                    const toCol = square.charCodeAt(0) - 97;
-                    const toRow = parseInt(square.substring(1));
-                    
-                    if (Math.abs(fromCol - toCol) <= 1 && Math.abs(fromRow - toRow) <= 1 && !getPiece(square)) {
-                        movePiece(from, square);
-                        mana[turn] -= activeAbility.cost;
-                        activeAbility = null;
-                        toggleTurn();
-                        return;
-                    }
-                }
-                
-                statusText.innerText = "Invalid target for ability.";
-                activeAbility = null;
-                createBoard();
-                return;
-            }
-
-            if (selectedSquare === square) {
-                selectedSquare = null;
-                createBoard();
-                return;
-            }
-
-            const piece = getPiece(square);
-            if (piece && piece.color === turn) {
-                if (frozenPieces[square] && frozenPieces[square] > turnCount) {
-                    statusText.innerText = "This piece is frozen!";
-                    return;
-                }
-                selectedSquare = square;
-                createBoard();
-            } else if (selectedSquare) {
-                const moves = getLegalMoves(selectedSquare);
-                const move = moves.find(m => m.to === square);
-                if (move) {
-                    executeMove(move);
-                } else {
-                    selectedSquare = null;
-                    createBoard();
-                }
-            }
-        }
-
-        async function executeMove(move) {
-            const targetPiece = getPiece(move.to);
-            const pieceToMove = getPiece(move.from);
-            
-            if (targetPiece) {
-                if (targetPiece.type === 'k') {
-                    statusText.innerText = "Cannot capture the King!";
-                    return;
-                }
-                capturedPieces[targetPiece.color].push(targetPiece);
-            }
-
-            let moveSan = "";
-            if (gameConfig.size === 8 && !customBoard) {
-                const result = game.move(move);
-                if (result) {
-                    moveHistory.push(result);
-                    moveSan = result.san;
-                }
-            } else {
-                // Manual move SAN
-                const pieceChar = pieceToMove.type === 'p' ? '' : pieceToMove.type.toUpperCase();
-                const captureChar = targetPiece ? 'x' : '';
-                moveSan = `${pieceChar}${captureChar}${move.to}`;
-                
-                movePiece(move.from, move.to);
-                moveHistory.push(move);
-            }
-            
-            lastMove = move;
-            selectedSquare = null;
-
-            // Sync to Firebase if online
-            if (!isLocalMode && currentGameId) {
-                try {
-                    const gameRef = ref(db, 'games/' + currentGameId);
-                    const updates = {
-                        fen: gameConfig.size === 8 && !customBoard ? game.fen() : JSON.stringify(customBoard),
-                        lastMove: move
-                    };
-                    
-                    // Update custom history
-                    const historyRef = ref(db, `games/${currentGameId}/customHistory`);
-                    const historySnap = await get(historyRef);
-                    const history = historySnap.val() || [];
-                    history.push(moveSan);
-                    updates.customHistory = history;
-
-                    // Update captured pieces
-                    if (targetPiece) {
-                        const capturedRef = ref(db, `games/${currentGameId}/captured`);
-                        const capturedSnap = await get(capturedRef);
-                        const captured = capturedSnap.val() || { w: [], b: [] };
-                        captured[targetPiece.color].push(targetPiece.type);
-                        updates.captured = captured;
-                    }
-
-                    await update(gameRef, updates);
-                } catch (e) { console.error("Firebase sync error:", e); }
-            }
-            
-            // Handle pawn promotion
-            const piece = getPiece(move.to);
-            const size = gameConfig.size || 8;
-            if (piece && piece.type === 'p' && (move.to.endsWith(size) || move.to.endsWith('1'))) {
-                showPromotionModal(move.to, piece.color);
-                return;
-            }
-
-            toggleTurn();
-            
-            // Check for game over
-            const turn = getTurn();
-            let gameOver = false;
-            let title = "";
-            let body = "";
-
-            if (gameConfig.size === 8 && !customBoard) {
-                if (game.game_over()) {
-                    gameOver = true;
-                    if (game.in_checkmate()) {
-                        const winner = turn === 'w' ? 'Black' : 'White';
-                        title = "Checkmate!";
-                        body = `${winner} wins the game.`;
-                    } else {
-                        body = "It's a draw.";
-                    }
-                }
-            } else {
-                // Custom board game over logic
-                const pieces = Object.values(customBoard || {});
-                const whiteKing = pieces.find(p => p && p.type === 'k' && p.color === 'w');
-                const blackKing = pieces.find(p => p && p.type === 'k' && p.color === 'b');
-                if (!whiteKing || !blackKing) {
-                    gameOver = true;
-                    const winner = whiteKing ? 'White' : 'Black';
-                    title = "King Captured!";
-                    body = `${winner} wins the game.`;
-                }
-            }
-
-            if (gameOver) {
-                showGameOverModal(title || "Game Over", body);
-                
-                // Update ELO
-                if (!isLocalMode && !eloUpdated) {
-                    const winner = title === "Checkmate!" ? (turn === 'w' ? 'Black' : 'White') : (title === "King Captured!" ? (getPiece(move.to).color === 'w' ? 'White' : 'Black') : null);
-                    const score = winner === (playerRole === 'w' ? 'White' : 'Black') ? 1 : 0;
-                    const change = calculateEloChange(playerElo, opponentElo, score);
-                    saveElo(playerElo + change);
-                    eloUpdated = true;
-                }
-            }
-        }
-
-        function showPromotionModal(square, color) {
-            const modal = document.getElementById('promotion-modal');
-            const optionsEl = document.getElementById('promotion-options');
-            modal.classList.remove('hidden');
-            
-            const pieces = ['q', 'r', 'b', 'n'];
-            optionsEl.innerHTML = pieces.map(type => `
-                <button onclick="promotePawn('${square}', '${color}', '${type}')" class="p-4 bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 flex flex-col items-center gap-2">
-                    <span class="text-4xl">${UNICODE_PIECES[color][type]}</span>
-                    <span class="text-[10px] uppercase font-bold text-white/40">${type}</span>
-                </button>
-            `).join('');
-        }
-
-        window.promotePawn = (square, color, type) => {
-            const piece = getPiece(square);
-            piece.type = type;
-            document.getElementById('promotion-modal').classList.add('hidden');
-            
-            // If online, we should sync this too, but for now let's just update visual
-            createBoard();
-            toggleTurn();
-        };
-
-        function showGameOverModal(title, body) {
-            const modal = document.getElementById('game-over-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalBody = document.getElementById('modal-body');
-            modalTitle.innerText = title;
-            modalBody.innerText = body;
-            modal.classList.remove('hidden');
-        }
-
-        window.startLocalGame = () => {
-            isLocalMode = true;
-            playerRole = 'w';
-            gameConfig.mode = 'custom';
-            gameConfig.size = 8;
-            
-            // Initialize game
-            game = new Chess();
-            customBoard = null;
-            mana = { w: 1, b: 0 };
-            frozenPieces = {};
-            shieldedKings = { w: 0, b: 0 };
-            walls = {};
-            turnCount = 0;
-            
-            showScreen('game-screen');
-            createBoard();
             updateStatus();
-        };
+        }
 
         window.setBoardTheme = (theme) => {
             currentBoardTheme = theme;
@@ -1804,8 +1098,8 @@
             
             // Update UI
             document.querySelectorAll('#piece-themes button').forEach((btn) => {
-                btn.classList.toggle('bg-slate-500/40', btn.innerText.toLowerCase() === theme);
-                btn.classList.toggle('border-slate-500/50', btn.innerText.toLowerCase() === theme);
+                btn.classList.toggle('bg-indigo-500/40', btn.innerText.toLowerCase() === theme);
+                btn.classList.toggle('border-indigo-500/50', btn.innerText.toLowerCase() === theme);
             });
             
             createBoard();
@@ -1821,8 +1115,8 @@
                 if (skin !== 'classic') {
                     const ability = SKIN_ABILITIES[type][skin];
                     const div = document.createElement('div');
-                    div.className = 'bg-slate-500/10 p-2 rounded-lg border border-slate-500/20';
-                    div.innerHTML = `<p class="text-[10px] font-bold text-slate-300 uppercase">${ability.name}</p><p class="text-[9px] text-white/50">${ability.desc}</p>`;
+                    div.className = 'bg-indigo-500/10 p-2 rounded-lg border border-indigo-500/20';
+                    div.innerHTML = `<p class="text-[10px] font-bold text-indigo-300 uppercase">${ability.name}</p><p class="text-[9px] text-white/50">${ability.desc}</p>`;
                     container.appendChild(div);
                 }
             });
@@ -1835,9 +1129,6 @@
             if (!square) return [];
             const piece = getPiece(square);
             if (!piece || piece.color !== role) return [];
-
-            // Frozen pieces cannot move
-            if (!forCheck && frozenPieces[square] && frozenPieces[square] > turnCount) return [];
 
             const standardMoves = gameConfig.size === 8 ? game.moves({ square: square, verbose: true }) : [];
             
@@ -1867,10 +1158,6 @@
                 if (tr < 0 || tr >= size || tc < 0 || tc >= size) return;
                 const targetSquare = String.fromCharCode(97 + tc) + (size - tr);
                 const targetPiece = getPiece(targetSquare);
-                
-                // Cannot move into a wall
-                if (walls[targetSquare] && walls[targetSquare] > turnCount) return;
-
                 if (!targetPiece || targetPiece.color !== piece.color) {
                     specialMoves.push({ from: square, to: targetSquare, piece: piece.type, color: piece.color });
                 }
@@ -2013,10 +1300,6 @@
                         const tc = c + i * dc;
                         if (tr < 0 || tr >= size || tc < 0 || tc >= size) break;
                         const targetSquare = String.fromCharCode(97 + tc) + (size - tr);
-                        
-                        // Walls block everything
-                        if (walls[targetSquare] && walls[targetSquare] > turnCount) break;
-
                         const targetPiece = getPiece(targetSquare);
                         
                         if (!targetPiece) {
@@ -2069,16 +1352,8 @@
             if (!forCheck) {
                 return allMoves.filter(m => {
                     const targetPiece = getPiece(m.to);
-                    
-                    // Cannot capture the King
                     if (targetPiece && targetPiece.type === 'k') return false;
                     
-                    // Shielded king cannot be captured
-                    if (targetPiece && targetPiece.type === 'k' && shieldedKings[targetPiece.color] > turnCount) return false;
-
-                    // Walls block moves
-                    if (walls[m.to] && walls[m.to] > turnCount) return false;
-
                     // Simulate move and check if king is in check
                     const originalFrom = getPiece(m.from);
                     const originalTo = getPiece(m.to);
@@ -2091,7 +1366,7 @@
                     const inCheck = isKingInCheck(role);
                     
                     // Restore
-                    if (gameConfig.size === 8 && !customBoard) {
+                    if (gameConfig.size === 8) {
                         setPiece(m.from, originalFrom);
                         setPiece(m.to, originalTo);
                     } else {
@@ -2102,6 +1377,266 @@
                 });
             }
             return allMoves;
+        }
+
+        async function handleSquareClick(square) {
+            if (getTurn() !== playerRole) return;
+
+            // Move Mode Logic
+            if (moveModeActive) {
+                const piece = getPiece(square);
+                if (piece && piece.color === playerRole) {
+                    controlledSquare = square;
+                    statusText.innerText = `Controlling ${square.toUpperCase()} (WASD to move, Space to release)`;
+                    createBoard();
+                    return;
+                }
+            }
+
+            const piece = getPiece(square);
+            const moves = getLegalMoves(selectedSquare);
+            const move = moves.find(m => m.to === square);
+
+            if (move) {
+                // Check if it's a special move
+                const standardMoves = gameConfig.size === 8 ? game.moves({ square: selectedSquare, verbose: true }) : [];
+                const isSpecial = !standardMoves.find(m => m.to === square);
+                const pieceToMove = getPiece(selectedSquare);
+                const targetPiece = getPiece(square);
+                
+                let moveSan = "";
+                if (gameConfig.size === 8 && !isSpecial) {
+                    const m = game.move({ from: selectedSquare, to: square, promotion: 'q' });
+                    moveSan = m.san;
+                } else {
+                    // Manual move SAN
+                    const pieceChar = pieceToMove.type === 'p' ? '' : pieceToMove.type.toUpperCase();
+                    const captureChar = targetPiece ? 'x' : '';
+                    moveSan = `${pieceChar}${captureChar}${square}`;
+                    
+                    setPiece(selectedSquare, null);
+                    setPiece(square, pieceToMove);
+                    toggleTurn();
+                }
+
+                try {
+                    const gameRef = ref(db, 'games/' + currentGameId);
+                    const updates = {
+                        fen: gameConfig.size === 8 ? game.fen() : JSON.stringify(customBoard),
+                        lastMove: { from: selectedSquare, to: square }
+                    };
+
+                    // Update custom history
+                    const historyRef = ref(db, `games/${currentGameId}/customHistory`);
+                    const historySnap = await get(historyRef);
+                    const history = historySnap.val() || [];
+                    history.push(moveSan);
+                    updates.customHistory = history;
+
+                    // Update captured pieces
+                    if (targetPiece) {
+                        const capturedRef = ref(db, `games/${currentGameId}/captured`);
+                        const capturedSnap = await get(capturedRef);
+                        const captured = capturedSnap.val() || { w: [], b: [] };
+                        captured[targetPiece.color].push(targetPiece.type);
+                        updates.captured = captured;
+                    }
+
+                    await update(gameRef, updates);
+                    selectedSquare = null;
+                } catch (e) { console.error(e); }
+            } else {
+                if (piece && piece.color === playerRole) {
+                    selectedSquare = square;
+                } else {
+                    selectedSquare = null;
+                }
+            }
+            createBoard();
+        }
+
+        function isKingInCheck(color) {
+            const size = Math.floor(gameConfig.size || 8);
+            const opponentColor = color === 'w' ? 'b' : 'w';
+            let kingSquare = null;
+            
+            // Find king
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const s = String.fromCharCode(97 + c) + (size - r);
+                    const p = getPiece(s);
+                    if (p && p.type === 'k' && p.color === color) {
+                        kingSquare = s;
+                        break;
+                    }
+                }
+                if (kingSquare) break;
+            }
+            
+            if (!kingSquare) return false;
+
+            // Check if any opponent piece can attack kingSquare
+            for (let r = 0; r < size; r++) {
+                for (let c = 0; c < size; c++) {
+                    const s = String.fromCharCode(97 + c) + (size - r);
+                    const p = getPiece(s);
+                    if (p && p.color === opponentColor) {
+                        const moves = getLegalMoves(s, opponentColor, true);
+                        if (moves.find(m => m.to === kingSquare)) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        function updateStatus() {
+            const turn = getTurn() === 'w' ? 'White' : 'Black';
+            const isMyTurn = getTurn() === playerRole;
+            
+            let isGameOver = false;
+            if (gameConfig.size === 8 || gameConfig.size === 8.1) {
+                isGameOver = game.game_over();
+            } else {
+                const pieces = Object.values(customBoard || {});
+                const whiteKing = pieces.find(p => p && p.type === 'k' && p.color === 'w');
+                const blackKing = pieces.find(p => p && p.type === 'k' && p.color === 'b');
+                isGameOver = !whiteKing || !blackKing;
+            }
+
+            if (isGameOver) {
+                statusText.innerText = 'Game Over';
+                showGameOver();
+            } else {
+                statusText.innerText = isMyTurn ? "Your Turn" : `${turn}'s Turn`;
+            }
+
+            turnIndicator.className = `w-4 h-4 rounded-full ${getTurn() === 'w' ? 'bg-white border border-black/20' : 'bg-black border border-white/20'}`;
+            
+            const inCheck = isKingInCheck(getTurn());
+            if (inCheck && !isGameOver) {
+                checkBadge.classList.remove('hidden');
+            } else {
+                checkBadge.classList.add('hidden');
+            }
+        }
+
+        function updateCapturedPieces(captured) {
+            if (!captured) return;
+            const playerCapturedEl = document.getElementById('player-captured');
+            const opponentCapturedEl = document.getElementById('opponent-captured');
+            
+            playerCapturedEl.innerHTML = '';
+            opponentCapturedEl.innerHTML = '';
+
+            const renderCaptured = (list, el, color) => {
+                list.forEach(type => {
+                    const img = document.createElement('img');
+                    img.src = `https://chessboardjs.com/img/chesspieces/wikipedia/${color}${type.toUpperCase()}.png`;
+                    img.className = 'w-5 h-5 opacity-60';
+                    img.referrerPolicy = 'no-referrer';
+                    el.appendChild(img);
+                });
+            };
+
+            // If I am white, I show pieces I captured (black pieces) in player-captured
+            // and pieces opponent captured (white pieces) in opponent-captured
+            if (playerRole === 'w') {
+                renderCaptured(captured.b || [], playerCapturedEl, 'b');
+                renderCaptured(captured.w || [], opponentCapturedEl, 'w');
+            } else {
+                renderCaptured(captured.w || [], playerCapturedEl, 'w');
+                renderCaptured(captured.b || [], opponentCapturedEl, 'b');
+            }
+        }
+
+        function updateHistory(data) {
+            const history = data && data.customHistory ? data.customHistory : (gameConfig.size === 8 ? game.history() : []);
+            
+            if (history.length === 0) {
+                moveHistoryEl.innerHTML = '<p class="text-white/40 italic text-sm col-span-2">No moves yet...</p>';
+                return;
+            }
+
+            moveHistoryEl.innerHTML = '';
+            for (let i = 0; i < history.length; i += 2) {
+                const moveNum = Math.floor(i / 2) + 1;
+                
+                const whiteMove = document.createElement('div');
+                whiteMove.className = 'text-sm text-white/60 flex gap-2';
+                whiteMove.innerHTML = `<span class="w-4 text-white/30">${moveNum}.</span><span class="font-mono text-white">${history[i]}</span>`;
+                moveHistoryEl.appendChild(whiteMove);
+
+                if (history[i + 1]) {
+                    const blackMove = document.createElement('div');
+                    blackMove.className = 'text-sm text-white/60 flex gap-2';
+                    blackMove.innerHTML = `<span class="font-mono text-white">${history[i + 1]}</span>`;
+                    moveHistoryEl.appendChild(blackMove);
+                }
+            }
+            moveHistoryEl.scrollTop = moveHistoryEl.scrollHeight;
+        }
+
+        function showGameOver() {
+            modal.classList.remove('hidden');
+            let score = 0.5;
+            let resultText = "";
+
+            if (gameConfig.size !== 8 && gameConfig.size !== 8.1) {
+                const pieces = Object.values(customBoard || {});
+                const whiteKing = pieces.find(p => p && p.type === 'k' && p.color === 'w');
+                const blackKing = pieces.find(p => p && p.type === 'k' && p.color === 'b');
+                
+                if (!whiteKing || !blackKing) {
+                    const winner = whiteKing ? 'w' : 'b';
+                    modalTitle.innerText = 'King Captured!';
+                    resultText = `${winner === 'w' ? 'White' : 'Black'} wins the game.`;
+                    score = playerRole === winner ? 1 : 0;
+                } else {
+                    modalTitle.innerText = 'Game Over';
+                    resultText = 'The match has concluded.';
+                    score = 0.5;
+                }
+            } else if (game.in_checkmate()) {
+                const winner = game.turn() === 'w' ? 'b' : 'w';
+                modalTitle.innerText = 'Checkmate!';
+                resultText = `${winner === 'w' ? 'White' : 'Black'} wins the game.`;
+                score = playerRole === winner ? 1 : 0;
+            } else if (game.in_draw()) {
+                modalTitle.innerText = 'Draw!';
+                resultText = game.in_stalemate() ? 'Stalemate! No legal moves left.' : 'The game ended in a draw.';
+                score = 0.5;
+            } else {
+                // If called manually or other end condition
+                modalTitle.innerText = 'Game Over';
+                resultText = 'The match has concluded.';
+                score = 0.5;
+            }
+            
+            if (!eloUpdated && currentGameId) {
+                const change = calculateEloChange(playerElo, opponentElo, score);
+                const newElo = playerElo + change;
+                const diff = Math.round(change);
+                const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
+                
+                modalBody.innerHTML = `
+                    <p class="text-white/70 mb-4">${resultText}</p>
+                    <div class="bg-black/20 p-4 rounded-2xl border border-white/5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[10px] text-white/30 uppercase font-black tracking-widest">Rating Change</span>
+                            <span class="font-mono font-bold ${diff >= 0 ? 'text-emerald-400' : 'text-red-400'}">${diffText}</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs text-white/60">New Rating</span>
+                            <span class="text-lg font-mono font-bold text-white">${Math.round(newElo)}</span>
+                        </div>
+                    </div>
+                `;
+                
+                saveElo(newElo);
+                eloUpdated = true;
+            } else {
+                modalBody.innerText = resultText;
+            }
         }
 
         window.copyGameId = () => {
@@ -2120,7 +1655,7 @@
                     moveModeActive = true;
                     typedBuffer = "";
                     statusText.innerText = "MOVE MODE ACTIVE: Click a piece to control";
-                    statusText.classList.add('text-slate-400', 'animate-pulse');
+                    statusText.classList.add('text-indigo-400', 'animate-pulse');
                 }
                 // Keep buffer short
                 if (typedBuffer.length > 10) typedBuffer = typedBuffer.substring(1);
@@ -2140,7 +1675,7 @@
                     moveModeActive = false;
                     controlledSquare = null;
                     statusText.innerText = "Move Mode Deactivated";
-                    statusText.classList.remove('text-slate-400', 'animate-pulse');
+                    statusText.classList.remove('text-indigo-400', 'animate-pulse');
                     createBoard();
                     return;
                 }

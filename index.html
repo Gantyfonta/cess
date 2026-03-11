@@ -12,7 +12,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>♔</text></svg>">
-    <title>Grandmaster Chess Multiplayer</title>
+    <title>Cess</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
@@ -219,7 +219,7 @@
                 <div class="w-24 h-24 bg-indigo-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 mx-auto transform -rotate-6">
                     <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                 </div>
-                <h1 class="text-5xl font-black tracking-tighter title-gradient">GRANDMASTER CHESS</h1>
+                <h1 class="text-5xl font-black tracking-tighter title-gradient">Cess</h1>
                 <p class="text-white/50 font-medium">Multiplayer Real-time Strategy</p>
                 <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full mt-4">
                     <span class="text-[10px] text-indigo-300 uppercase font-black tracking-widest">Your Rating</span>
@@ -649,6 +649,7 @@
         let selectedSquare = null;
         let lastMove = null;
         let isConfiguringLoadout = false;
+        let isLocalMode = false;
         
         // Game Configuration
         let gameConfig = {
@@ -725,6 +726,16 @@
         const modal = document.getElementById('game-over-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
+        const manaCountEl = document.getElementById('mana-count');
+        const manaDotsEl = document.getElementById('mana-bar');
+
+        function showScreen(screenId) {
+            titleScreen.classList.add('hidden');
+            loadoutScreen.classList.add('hidden');
+            lobbyScreen.classList.add('hidden');
+            gameScreen.classList.add('hidden');
+            document.getElementById(screenId).classList.remove('hidden');
+        }
 
         // Multiplayer Logic
         async function createGame() {
@@ -1338,7 +1349,7 @@
                     const sq = `${squareNames[c]}${size - r}`;
                     const p = getPiece(sq);
                     if (p && p.color === enemyColor) {
-                        const moves = getLegalMoves(sq, true); // true = ignore check safety to avoid recursion
+                        const moves = getLegalMoves(sq, enemyColor, true); // true = ignore check safety to avoid recursion
                         if (moves.some(m => m.to === kingPos)) return true;
                     }
                 }
@@ -1349,6 +1360,7 @@
         function updateStatus() {
             const turn = getTurn();
             const isCheck = isKingInCheck(turn);
+            updateManaUI();
             
             let status = "";
             if (isLocalMode) {
@@ -1532,7 +1544,7 @@
                     }
                 } else if (activeAbility.type === 'berserker') {
                     // Handled in getLegalMoves usually, but let's do it here for simplicity
-                    const moves = getLegalMoves(activeAbility.from);
+                    const moves = getLegalMoves(activeAbility.from, turn);
                     const move = moves.find(m => m.to === square);
                     if (move) {
                         executeMove(move);
@@ -1585,7 +1597,7 @@
                 selectedSquare = square;
                 createBoard();
             } else if (selectedSquare) {
-                const moves = getLegalMoves(selectedSquare);
+                const moves = getLegalMoves(selectedSquare, turn);
                 const move = moves.find(m => m.to === square);
                 if (move) {
                     executeMove(move);
@@ -1666,6 +1678,10 @@
             }
 
             toggleTurn();
+            if (isLocalMode) {
+                updateStatus();
+                createBoard();
+            }
             
             // Check for game over
             const turn = getTurn();
@@ -1736,9 +1752,6 @@
         };
 
         function showGameOverModal(title, body) {
-            const modal = document.getElementById('game-over-modal');
-            const modalTitle = document.getElementById('modal-title');
-            const modalBody = document.getElementById('modal-body');
             modalTitle.innerText = title;
             modalBody.innerText = body;
             modal.classList.remove('hidden');
@@ -1750,6 +1763,10 @@
             gameConfig.mode = 'custom';
             gameConfig.size = 8;
             
+            // Initialize skins for local mode
+            playerSkins = { p: 'classic', n: 'classic', b: 'classic', r: 'classic', q: 'classic', k: 'classic' };
+            opponentSkins = { p: 'classic', n: 'classic', b: 'classic', r: 'classic', q: 'classic', k: 'classic' };
+            
             // Initialize game
             game = new Chess();
             customBoard = null;
@@ -1758,6 +1775,14 @@
             shieldedKings = { w: 0, b: 0 };
             walls = {};
             turnCount = 0;
+            capturedPieces = { w: [], b: [] };
+            moveHistory = [];
+            
+            // UI adjustments for local mode
+            displayGameId.parentElement.classList.add('hidden');
+            opponentStatusText.innerText = "Local 1v1 Mode";
+            playerRoleText.innerText = "Local Play";
+            playerRoleIcon.innerText = "⚔️";
             
             showScreen('game-screen');
             createBoard();
@@ -2148,6 +2173,24 @@
         });
 
         // Event Listeners
+        document.getElementById('mode-local-toggle').onclick = () => {
+            document.getElementById('mode-local-toggle').classList.add('bg-indigo-500', 'text-white', 'border-indigo-400');
+            document.getElementById('mode-local-toggle').classList.remove('bg-white/5', 'text-white/60', 'border-white/10');
+            document.getElementById('mode-online-toggle').classList.remove('bg-indigo-500', 'text-white', 'border-indigo-400');
+            document.getElementById('mode-online-toggle').classList.add('bg-white/5', 'text-white/60', 'border-white/10');
+            document.getElementById('start-btn-text').innerText = "Start Local Game";
+            document.getElementById('create-game-btn').onclick = startLocalGame;
+        };
+
+        document.getElementById('mode-online-toggle').onclick = () => {
+            document.getElementById('mode-online-toggle').classList.add('bg-indigo-500', 'text-white', 'border-indigo-400');
+            document.getElementById('mode-online-toggle').classList.remove('bg-white/5', 'text-white/60', 'border-white/10');
+            document.getElementById('mode-local-toggle').classList.remove('bg-indigo-500', 'text-white', 'border-indigo-400');
+            document.getElementById('mode-local-toggle').classList.add('bg-white/5', 'text-white/60', 'border-white/10');
+            document.getElementById('start-btn-text').innerText = "Create New Game";
+            document.getElementById('create-game-btn').onclick = createGame;
+        };
+
         document.getElementById('create-game-btn').onclick = createGame;
         document.getElementById('join-game-btn').onclick = () => {
             const id = document.getElementById('join-game-id').value;

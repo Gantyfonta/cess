@@ -216,7 +216,7 @@
 <div id="title-screen" class="min-h-screen flex flex-col items-center justify-center p-4">
     <div class="max-w-md w-full text-center space-y-8">
         <div class="space-y-4">
-            <div class="w-24 h-24 bg-indigo-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 mx-auto transform -rotate-6">
+            <div class="w-24 h-24 bg-slate-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-slate-500/40 mx-auto transform -rotate-6">
                 <svg class="w-14 h-14 text-white" viewBox="0 0 24 24" fill="currentColor">
                     <!-- Clean chess pawn icon -->
                     <path d="M12 3a3 3 0 100 6 3 3 0 000-6zm-4 9c0-1.657 1.79-3 4-3s4 1.343 4 3c0 1.03-.69 1.94-1.74 2.48L15 18H9l.74-3.52C8.69 13.94 8 13.03 8 12zm-2 8h12v2H6v-2z"/>
@@ -226,8 +226,8 @@
             <h1 class="text-5xl font-black tracking-tighter">Cess</h1>
             <p class="text-white/50 font-medium">Multiplayer Real-time Strategy</p>
 
-            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full mt-4">
-                <span class="text-[10px] text-indigo-300 uppercase font-black tracking-widest">Your Rating</span>
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-slate-500/10 border border-slate-500/20 rounded-full mt-4">
+                <span class="text-[10px] text-slate-300 uppercase font-black tracking-widest">Your Rating</span>
                 <span id="title-elo-display" class="text-sm font-mono font-bold text-white">1200</span>
             </div>
         </div>
@@ -235,7 +235,7 @@
         <div class="space-y-4 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-xl">
 
             <div class="flex gap-2 mb-4">
-                <button id="mode-online-toggle" class="flex-1 py-2 bg-indigo-500 text-white font-bold rounded-xl border border-indigo-400 text-xs">
+                <button id="mode-online-toggle" class="flex-1 py-2 bg-slate-500 text-white font-bold rounded-xl border border-slate-400 text-xs">
                     Online PvP
                 </button>
 
@@ -244,7 +244,7 @@
                 </button>
             </div>
 
-            <button id="create-game-btn" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+            <button id="create-game-btn" class="w-full py-4 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-slate-500/20 flex items-center justify-center gap-2">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                 </svg>
@@ -252,7 +252,7 @@
             </button>
 
             <button id="customize-loadout-btn" class="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all border border-white/10 flex items-center justify-center gap-2">
-                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
                 </svg>
                 Customize Piece Skins
@@ -268,7 +268,7 @@
             </div>
 
             <div class="flex gap-2">
-                <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+                <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-slate-500/50">
 
                 <button id="join-game-btn" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
                     Join
@@ -311,7 +311,7 @@
                 <div class="flex items-center justify-center gap-3 bg-white/5 py-2 px-4 rounded-xl border border-white/10 w-fit mx-auto mt-4">
                     <div class="flex items-center gap-2">
                         <span class="text-[10px] text-white/40 uppercase font-bold tracking-widest">Room Code:</span>
-                        <span id="lobby-game-id" class="font-mono text-indigo-400 font-bold text-lg">------</span>
+                        <span id="lobby-game-id" class="font-mono text-slate-400 font-bold text-lg">------</span>
                     </div>
                     <button onclick="copyGameId()" class="p-1.5 hover:bg-white/10 rounded-lg transition-colors border border-white/5">
                         <svg class="w-4 h-4 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
@@ -326,15 +326,15 @@
                     <div class="grid grid-cols-1 gap-3">
                         <button id="mode-regular-btn" class="p-4 bg-white/5 border border-white/10 rounded-2xl text-left transition-all hover:bg-white/10 group">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="font-bold text-white group-hover:text-indigo-400">Regular Chess</span>
-                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-indigo-500 hidden"></div></div>
+                                <span class="font-bold text-white group-hover:text-slate-400">Regular Chess</span>
+                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-slate-500 hidden"></div></div>
                             </div>
                             <p class="text-xs text-white/40">Standard 8x8 board, classic rules, no special abilities.</p>
                         </button>
-                        <button id="mode-custom-btn" class="p-4 bg-white/5 border border-indigo-500/50 rounded-2xl text-left transition-all hover:bg-white/10 group active-mode">
+                        <button id="mode-custom-btn" class="p-4 bg-white/5 border border-slate-500/50 rounded-2xl text-left transition-all hover:bg-white/10 group active-mode">
                             <div class="flex items-center justify-between mb-1">
-                                <span class="font-bold text-white group-hover:text-indigo-400">Custom Chess</span>
-                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-indigo-500"></div></div>
+                                <span class="font-bold text-white group-hover:text-slate-400">Custom Chess</span>
+                                <div class="w-4 h-4 rounded-full border-2 border-white/20 flex items-center justify-center"><div class="w-2 h-2 rounded-full bg-slate-500"></div></div>
                             </div>
                             <p class="text-xs text-white/40">Variable board size, custom piece layouts, and special skins active.</p>
                         </button>
@@ -349,14 +349,14 @@
                             <label class="text-xs text-white/60 block mb-2">Board Size</label>
                             <div class="grid grid-cols-3 gap-2">
                                 <button onclick="setBoardSize(6)" class="size-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">6x6</button>
-                                <button onclick="setBoardSize(8)" class="size-btn py-2 bg-indigo-500 border border-indigo-400 rounded-xl text-xs font-bold">8x8</button>
+                                <button onclick="setBoardSize(8)" class="size-btn py-2 bg-slate-500 border border-slate-400 rounded-xl text-xs font-bold">8x8</button>
                                 <button onclick="setBoardSize(10)" class="size-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">10x10</button>
                             </div>
                         </div>
                         <div>
                             <label class="text-xs text-white/60 block mb-2">Piece Set</label>
                             <div class="grid grid-cols-2 gap-2">
-                                <button onclick="setPieceSet('standard')" class="piece-set-btn py-2 bg-indigo-500 border border-indigo-400 rounded-xl text-xs font-bold">Standard</button>
+                                <button onclick="setPieceSet('standard')" class="piece-set-btn py-2 bg-slate-500 border border-slate-400 rounded-xl text-xs font-bold">Standard</button>
                                 <button onclick="setPieceSet('chaos')" class="piece-set-btn py-2 bg-white/5 border border-white/10 rounded-xl text-xs font-bold hover:bg-white/10">Chaos</button>
                             </div>
                         </div>
@@ -379,16 +379,16 @@
         <!-- Header -->
         <header class="w-full h-16 border-b border-white/10 flex items-center justify-between px-8 bg-black/20 backdrop-blur-md sticky top-0 z-50">
             <div class="flex items-center gap-3">
-                <div class="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                <div class="w-8 h-8 bg-slate-500 rounded-lg flex items-center justify-center shadow-lg shadow-slate-500/20">
                     <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
                 </div>
-                <h1 class="text-lg font-bold tracking-tight hidden sm:block">Grandmaster <span class="text-indigo-400">Chess</span></h1>
+                <h1 class="text-lg font-bold tracking-tight hidden sm:block">Grandmaster <span class="text-slate-400">Chess</span></h1>
             </div>
             
             <div class="flex items-center gap-4">
                 <div class="bg-white/5 px-4 py-1.5 rounded-full border border-white/10 flex items-center gap-2">
                     <span class="text-xs text-white/40 uppercase font-bold tracking-wider">Game ID:</span>
-                    <span id="display-game-id" class="font-mono text-indigo-400 font-bold">------</span>
+                    <span id="display-game-id" class="font-mono text-slate-400 font-bold">------</span>
                     <button onclick="copyGameId()" class="p-1 hover:bg-white/10 rounded transition-colors">
                         <svg class="w-3.5 h-3.5 text-white/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7v8a2 2 0 002 2h6M8 7V5a2 2 0 012-2h4.586a1 1 0 01.707.293l4.414 4.414a1 1 0 01.293.707V15a2 2 0 01-2 2h-2M8 7H6a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2v-2"></path></svg>
                     </button>
@@ -431,7 +431,7 @@
                                 <p class="text-xs text-white/40 font-bold uppercase tracking-widest">You are playing as</p>
                                 <div class="flex items-center gap-2">
                                     <p id="player-role-text" class="font-bold text-white">Assigning...</p>
-                                    <span id="player-elo-badge" class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-md font-mono font-bold border border-indigo-500/30">1200</span>
+                                    <span id="player-elo-badge" class="text-[10px] bg-slate-500/20 text-slate-300 px-2 py-0.5 rounded-md font-mono font-bold border border-slate-500/30">1200</span>
                                 </div>
                             </div>
                         </div>
@@ -508,7 +508,7 @@
             <div class="bg-[#2a2a2a] p-8 rounded-3xl border border-white/10 max-w-sm w-full shadow-2xl text-center">
                 <h2 id="modal-title" class="text-3xl font-bold mb-2">Checkmate!</h2>
                 <p id="modal-body" class="text-white/70 mb-6">White wins the game.</p>
-                <button onclick="location.reload()" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20">
+                <button onclick="location.reload()" class="w-full py-4 bg-slate-500 hover:bg-slate-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-slate-500/20">
                     Back to Menu
                 </button>
             </div>
@@ -788,7 +788,7 @@
                 
                 Object.keys(SKIN_ABILITIES[type]).forEach(skin => {
                     const btn = document.createElement('button');
-                    btn.className = `flex-1 min-w-[100px] py-2 px-3 text-xs rounded-xl border transition-all ${playerSkins[type] === skin ? 'bg-indigo-500 border-indigo-400 text-white' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`;
+                    btn.className = `flex-1 min-w-[100px] py-2 px-3 text-xs rounded-xl border transition-all ${playerSkins[type] === skin ? 'bg-slate-500 border-slate-400 text-white' : 'bg-white/5 border-white/10 text-white/60 hover:bg-white/10'}`;
                     btn.innerHTML = `<strong>${SKIN_ABILITIES[type][skin].name}</strong><br><span class="opacity-50 text-[10px]">${SKIN_ABILITIES[type][skin].desc}</span>`;
                     btn.onclick = () => {
                         playerSkins[type] = skin;
@@ -841,9 +841,9 @@
 
             // Mode buttons
             modeRegularBtn.classList.toggle('active-mode', gameConfig.mode === 'regular');
-            modeRegularBtn.classList.toggle('border-indigo-500/50', gameConfig.mode === 'regular');
+            modeRegularBtn.classList.toggle('border-slate-500/50', gameConfig.mode === 'regular');
             modeCustomBtn.classList.toggle('active-mode', gameConfig.mode === 'custom');
-            modeCustomBtn.classList.toggle('border-indigo-500/50', gameConfig.mode === 'custom');
+            modeCustomBtn.classList.toggle('border-slate-500/50', gameConfig.mode === 'custom');
             
             // Radio indicators
             const regRadio = modeRegularBtn.querySelector('.w-2');
@@ -859,16 +859,16 @@
             // Size buttons
             document.querySelectorAll('.size-btn').forEach(btn => {
                 const size = parseInt(btn.innerText);
-                btn.classList.toggle('bg-indigo-500', gameConfig.size === size);
-                btn.classList.toggle('border-indigo-400', gameConfig.size === size);
+                btn.classList.toggle('bg-slate-500', gameConfig.size === size);
+                btn.classList.toggle('border-slate-400', gameConfig.size === size);
                 btn.classList.toggle('bg-white/5', gameConfig.size !== size);
             });
 
             // Piece set buttons
             document.querySelectorAll('.piece-set-btn').forEach(btn => {
                 const set = btn.innerText.toLowerCase();
-                btn.classList.toggle('bg-indigo-500', gameConfig.pieceSet === set);
-                btn.classList.toggle('border-indigo-400', gameConfig.pieceSet === set);
+                btn.classList.toggle('bg-slate-500', gameConfig.pieceSet === set);
+                btn.classList.toggle('border-slate-400', gameConfig.pieceSet === set);
                 btn.classList.toggle('bg-white/5', gameConfig.pieceSet !== set);
             });
 
@@ -1082,7 +1082,7 @@
                             Your Firebase Realtime Database rules are preventing the app from writing data. 
                             To fix this, go to your <b>Firebase Console</b> > <b>Realtime Database</b> > <b>Rules</b> and paste:
                         </p>
-                        <pre class="bg-black/40 p-4 rounded-xl text-xs font-mono text-indigo-300 mb-6 overflow-x-auto">
+                        <pre class="bg-black/40 p-4 rounded-xl text-xs font-mono text-slate-300 mb-6 overflow-x-auto">
 {
   "rules": {
     ".read": "true",
@@ -1202,7 +1202,7 @@
             const currentTurn = getTurn();
             // Only show abilities if it's the player's turn (or local mode)
             if (!isLocalMode && currentTurn !== playerRole) {
-                abilitiesListEl.innerHTML = '<div class="text-indigo-300/50 italic text-sm">Waiting for opponent...</div>';
+                abilitiesListEl.innerHTML = '<div class="text-slate-300/50 italic text-sm">Waiting for opponent...</div>';
                 return;
             }
 
@@ -1224,7 +1224,7 @@
             }
 
             if (pieces.length === 0) {
-                abilitiesListEl.innerHTML = '<div class="text-indigo-300/50 italic text-sm">No special pieces on board.</div>';
+                abilitiesListEl.innerHTML = '<div class="text-slate-300/50 italic text-sm">No special pieces on board.</div>';
                 return;
             }
 
@@ -1245,10 +1245,10 @@
                 btn.innerHTML = `
                     <div class="flex justify-between items-center mb-1">
                         <span class="font-bold text-xs" style="color: ${ability.accent}">${ability.name}</span>
-                        <span class="text-[10px] bg-indigo-500/30 px-1.5 rounded-full">${ability.cost} Mana</span>
+                        <span class="text-[10px] bg-slate-500/30 px-1.5 rounded-full">${ability.cost} Mana</span>
                     </div>
-                    <div class="text-[10px] text-indigo-200/70 leading-tight">${ability.desc}</div>
-                    <div class="text-[9px] mt-1 text-indigo-400/50 uppercase tracking-wider font-bold">${UNICODE_PIECES[currentTurn][p.type]} at ${p.square}</div>
+                    <div class="text-[10px] text-slate-200/70 leading-tight">${ability.desc}</div>
+                    <div class="text-[9px] mt-1 text-slate-400/50 uppercase tracking-wider font-bold">${UNICODE_PIECES[currentTurn][p.type]} at ${p.square}</div>
                 `;
                 abilitiesListEl.appendChild(btn);
             });
@@ -1380,7 +1380,7 @@
 
             statusText.innerHTML = `
                 <div class="flex items-center gap-2">
-                    <span class="w-3 h-3 rounded-full ${turn === 'w' ? 'bg-white shadow-[0_0_8px_white]' : 'bg-indigo-900 border border-white/20'}"></span>
+                    <span class="w-3 h-3 rounded-full ${turn === 'w' ? 'bg-white shadow-[0_0_8px_white]' : 'bg-slate-900 border border-white/20'}"></span>
                     ${status}
                     ${isCheck ? '<span class="check-badge">CHECK</span>' : ''}
                 </div>
@@ -1438,7 +1438,7 @@
 
                         if (skin !== 'classic' && gameConfig.mode !== 'regular') {
                             const dot = document.createElement('div');
-                            dot.className = 'absolute top-1 right-1 w-2 h-2 rounded-full bg-indigo-400 shadow-[0_0_5px_#818cf8] cursor-help';
+                            dot.className = 'absolute top-1 right-1 w-2 h-2 rounded-full bg-slate-400 shadow-[0_0_5px_#818cf8] cursor-help';
                             dot.onclick = (e) => {
                                 e.stopPropagation();
                                 const ability = SKIN_ABILITIES[piece.type][skin];
@@ -1804,8 +1804,8 @@
             
             // Update UI
             document.querySelectorAll('#piece-themes button').forEach((btn) => {
-                btn.classList.toggle('bg-indigo-500/40', btn.innerText.toLowerCase() === theme);
-                btn.classList.toggle('border-indigo-500/50', btn.innerText.toLowerCase() === theme);
+                btn.classList.toggle('bg-slate-500/40', btn.innerText.toLowerCase() === theme);
+                btn.classList.toggle('border-slate-500/50', btn.innerText.toLowerCase() === theme);
             });
             
             createBoard();
@@ -1821,8 +1821,8 @@
                 if (skin !== 'classic') {
                     const ability = SKIN_ABILITIES[type][skin];
                     const div = document.createElement('div');
-                    div.className = 'bg-indigo-500/10 p-2 rounded-lg border border-indigo-500/20';
-                    div.innerHTML = `<p class="text-[10px] font-bold text-indigo-300 uppercase">${ability.name}</p><p class="text-[9px] text-white/50">${ability.desc}</p>`;
+                    div.className = 'bg-slate-500/10 p-2 rounded-lg border border-slate-500/20';
+                    div.innerHTML = `<p class="text-[10px] font-bold text-slate-300 uppercase">${ability.name}</p><p class="text-[9px] text-white/50">${ability.desc}</p>`;
                     container.appendChild(div);
                 }
             });
@@ -2120,7 +2120,7 @@
                     moveModeActive = true;
                     typedBuffer = "";
                     statusText.innerText = "MOVE MODE ACTIVE: Click a piece to control";
-                    statusText.classList.add('text-indigo-400', 'animate-pulse');
+                    statusText.classList.add('text-slate-400', 'animate-pulse');
                 }
                 // Keep buffer short
                 if (typedBuffer.length > 10) typedBuffer = typedBuffer.substring(1);
@@ -2140,7 +2140,7 @@
                     moveModeActive = false;
                     controlledSquare = null;
                     statusText.innerText = "Move Mode Deactivated";
-                    statusText.classList.remove('text-indigo-400', 'animate-pulse');
+                    statusText.classList.remove('text-slate-400', 'animate-pulse');
                     createBoard();
                     return;
                 }

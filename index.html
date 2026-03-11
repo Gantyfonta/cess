@@ -212,51 +212,72 @@
     </style>
 </head>
 <body class="antialiased">
-    <!-- Title Screen -->
-    <div id="title-screen" class="min-h-screen flex flex-col items-center justify-center p-4">
-        <div class="max-w-md w-full text-center space-y-8">
-            <div class="space-y-4">
-                <div class="w-24 h-24 bg-indigo-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 mx-auto transform -rotate-6">
-                    <svg class="w-14 h-14 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z"></path></svg>
-                </div>
-                <h1 class="text-5xl font-black tracking-tighter title-gradient">Cess</h1>
-                <p class="text-white/50 font-medium">Multiplayer Real-time Strategy</p>
-                <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full mt-4">
-                    <span class="text-[10px] text-indigo-300 uppercase font-black tracking-widest">Your Rating</span>
-                    <span id="title-elo-display" class="text-sm font-mono font-bold text-white">1200</span>
-                </div>
+   <!-- Title Screen -->
+<div id="title-screen" class="min-h-screen flex flex-col items-center justify-center p-4">
+    <div class="max-w-md w-full text-center space-y-8">
+        <div class="space-y-4">
+            <div class="w-24 h-24 bg-indigo-500 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 mx-auto transform -rotate-6">
+                <svg class="w-14 h-14 text-white" viewBox="0 0 24 24" fill="currentColor">
+                    <!-- Clean chess pawn icon -->
+                    <path d="M12 3a3 3 0 100 6 3 3 0 000-6zm-4 9c0-1.657 1.79-3 4-3s4 1.343 4 3c0 1.03-.69 1.94-1.74 2.48L15 18H9l.74-3.52C8.69 13.94 8 13.03 8 12zm-2 8h12v2H6v-2z"/>
+                </svg>
             </div>
 
-            <div class="space-y-4 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-xl">
-                <div class="flex gap-2 mb-4">
-                    <button id="mode-online-toggle" class="flex-1 py-2 bg-indigo-500 text-white font-bold rounded-xl border border-indigo-400 text-xs">Online PvP</button>
-                    <button id="mode-local-toggle" class="flex-1 py-2 bg-white/5 text-white/60 font-bold rounded-xl border border-white/10 text-xs hover:bg-white/10">Local 1v1</button>
-                </div>
+            <h1 class="text-5xl font-black tracking-tighter">Cess</h1>
+            <p class="text-white/50 font-medium">Multiplayer Real-time Strategy</p>
 
-                <button id="create-game-btn" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                    <span id="start-btn-text">Create New Game</span>
-                </button>
-                
-                <button id="customize-loadout-btn" class="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all border border-white/10 flex items-center justify-center gap-2">
-                    <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
-                    Customize Piece Skins
-                </button>
-                
-                <div class="relative py-4">
-                    <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-white/10"></div></div>
-                    <div class="relative flex justify-center text-xs uppercase"><span class="bg-[#1a1a1a] px-2 text-white/30">Or Join Game</span></div>
-                </div>
-
-                <div class="flex gap-2">
-                    <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-                    <button id="join-game-btn" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
-                        Join
-                    </button>
-                </div>
+            <div class="inline-flex items-center gap-2 px-4 py-1.5 bg-indigo-500/10 border border-indigo-500/20 rounded-full mt-4">
+                <span class="text-[10px] text-indigo-300 uppercase font-black tracking-widest">Your Rating</span>
+                <span id="title-elo-display" class="text-sm font-mono font-bold text-white">1200</span>
             </div>
         </div>
+
+        <div class="space-y-4 bg-white/5 p-8 rounded-3xl border border-white/10 backdrop-blur-xl">
+
+            <div class="flex gap-2 mb-4">
+                <button id="mode-online-toggle" class="flex-1 py-2 bg-indigo-500 text-white font-bold rounded-xl border border-indigo-400 text-xs">
+                    Online PvP
+                </button>
+
+                <button id="mode-local-toggle" class="flex-1 py-2 bg-white/5 text-white/60 font-bold rounded-xl border border-white/10 text-xs hover:bg-white/10">
+                    Local 1v1
+                </button>
+            </div>
+
+            <button id="create-game-btn" class="w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span id="start-btn-text">Create New Game</span>
+            </button>
+
+            <button id="customize-loadout-btn" class="w-full py-4 bg-white/5 hover:bg-white/10 text-white font-bold rounded-2xl transition-all border border-white/10 flex items-center justify-center gap-2">
+                <svg class="w-5 h-5 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+                </svg>
+                Customize Piece Skins
+            </button>
+
+            <div class="relative py-4">
+                <div class="absolute inset-0 flex items-center">
+                    <div class="w-full border-t border-white/10"></div>
+                </div>
+                <div class="relative flex justify-center text-xs uppercase">
+                    <span class="bg-[#1a1a1a] px-2 text-white/30">Or Join Game</span>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+
+                <button id="join-game-btn" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
+                    Join
+                </button>
+            </div>
+
+        </div>
     </div>
+</div>
 
     <!-- Loadout Screen -->
     <div id="loadout-screen" class="min-h-screen flex flex-col items-center justify-center p-4 hidden">

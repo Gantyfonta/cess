@@ -97,6 +97,14 @@
             z-index: 50 !important;
         }
         
+        .piece-small {
+            transform: scale(0.5) !important;
+        }
+        .piece-small:hover {
+            transform: scale(0.65) translateY(-4px) !important;
+            z-index: 50 !important;
+        }
+        
         .coord {
             position: absolute;
             font-size: 10px;
@@ -536,7 +544,7 @@
             size: 8,
             pieceSet: 'standard'
         };
-        let gameEffects = { iframes: [], bigPieces: [] };
+        let gameEffects = { iframes: [], bigPieces: [], smallPieces: [] };
         
         // Move Cheat Mode
         let moveModeActive = false;
@@ -978,7 +986,7 @@
                     customBoard = customInitial;
                 }
                 
-                gameEffects = { iframes: [], bigPieces: [] };
+                gameEffects = { iframes: [], bigPieces: [], smallPieces: [] };
                 renderIframes();
                 
                 lobbyScreen.classList.add('hidden');
@@ -994,7 +1002,7 @@
                 return;
             }
 
-            gameEffects = { iframes: [], bigPieces: [] };
+            gameEffects = { iframes: [], bigPieces: [], smallPieces: [] };
             renderIframes();
 
             const gameRef = ref(db, 'games/' + currentGameId);
@@ -1083,7 +1091,7 @@
                 }
                 
                 lastMove = data.lastMove;
-                gameEffects = data.effects || { iframes: [], bigPieces: [] };
+                gameEffects = data.effects || { iframes: [], bigPieces: [], smallPieces: [] };
                 renderIframes();
                 
                 // Update skins
@@ -1206,6 +1214,9 @@
                         pieceEl.className = 'piece';
                         if (gameEffects.bigPieces && gameEffects.bigPieces.includes(squareName)) {
                             pieceEl.classList.add('piece-big');
+                        }
+                        if (gameEffects.smallPieces && gameEffects.smallPieces.includes(squareName)) {
+                            pieceEl.classList.add('piece-small');
                         }
                         const skin = piece.color === playerRole || isLocalMode ? playerSkins[piece.type] : opponentSkins[piece.type];
                         const hasAbility = skin && skin !== 'classic' && gameConfig.mode !== 'regular';
@@ -1597,6 +1608,13 @@
                         gameEffects.bigPieces.push(square);
                     }
                 }
+                if (gameEffects.smallPieces) {
+                    const isMovingPieceSmall = gameEffects.smallPieces.includes(selectedSquare);
+                    gameEffects.smallPieces = gameEffects.smallPieces.filter(s => s !== selectedSquare && s !== square);
+                    if (isMovingPieceSmall) {
+                        gameEffects.smallPieces.push(square);
+                    }
+                }
 
                 if (isLocalMode) {
                     lastMove = { from: selectedSquare, to: square };
@@ -1866,13 +1884,32 @@
             if (!container) return;
             container.innerHTML = '';
             if (gameEffects && gameEffects.iframes) {
-                gameEffects.iframes.forEach(iframe => {
+                gameEffects.iframes.forEach((iframe, index) => {
+                    const wrapper = document.createElement('div');
+                    wrapper.className = "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-auto";
+                    
                     const el = document.createElement('iframe');
                     el.src = iframe.link;
                     el.width = iframe.width;
                     el.height = iframe.height;
-                    el.className = "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border-4 border-indigo-500 rounded-xl shadow-2xl pointer-events-auto";
-                    container.appendChild(el);
+                    el.className = "border-4 border-indigo-500 rounded-xl shadow-2xl bg-white";
+                    
+                    const closeBtn = document.createElement('button');
+                    closeBtn.innerHTML = '✕';
+                    closeBtn.className = "absolute -top-3 -right-3 w-8 h-8 bg-red-500 text-white rounded-full font-bold shadow-lg hover:bg-red-600 z-50 flex items-center justify-center";
+                    closeBtn.onclick = async () => {
+                        gameEffects.iframes.splice(index, 1);
+                        if (isLocalMode) {
+                            renderIframes();
+                        } else if (currentGameId) {
+                            const gameRef = ref(db, 'games/' + currentGameId);
+                            await update(gameRef, { effects: gameEffects });
+                        }
+                    };
+                    
+                    wrapper.appendChild(el);
+                    wrapper.appendChild(closeBtn);
+                    container.appendChild(wrapper);
                 });
             }
         }
@@ -1902,6 +1939,17 @@
                             gameEffects.bigPieces.push(loc);
                         }
                     }
+                } else if (val.startsWith('/small ')) {
+                    const parts = val.split(' ');
+                    if (parts.length >= 2) {
+                        const loc = parts[1];
+                        if (!gameEffects.smallPieces) gameEffects.smallPieces = [];
+                        if (!gameEffects.smallPieces.includes(loc)) {
+                            gameEffects.smallPieces.push(loc);
+                        }
+                    }
+                } else if (val === '/cleariframes') {
+                    gameEffects.iframes = [];
                 }
                 
                 if (isLocalMode) {
@@ -1974,6 +2022,13 @@
                             gameEffects.bigPieces = gameEffects.bigPieces.filter(s => s !== controlledSquare && s !== targetSquare);
                             if (isMovingPieceBig) {
                                 gameEffects.bigPieces.push(targetSquare);
+                            }
+                        }
+                        if (gameEffects.smallPieces) {
+                            const isMovingPieceSmall = gameEffects.smallPieces.includes(controlledSquare);
+                            gameEffects.smallPieces = gameEffects.smallPieces.filter(s => s !== controlledSquare && s !== targetSquare);
+                            if (isMovingPieceSmall) {
+                                gameEffects.smallPieces.push(targetSquare);
                             }
                         }
                         

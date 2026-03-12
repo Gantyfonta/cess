@@ -88,6 +88,15 @@
         }
         .piece:active { transform: scale(1.05); }
         
+        .piece-big {
+            transform: scale(2) !important;
+            z-index: 40 !important;
+        }
+        .piece-big:hover {
+            transform: scale(2.15) translateY(-4px) !important;
+            z-index: 50 !important;
+        }
+        
         .coord {
             position: absolute;
             font-size: 10px;
@@ -275,7 +284,18 @@
         </div>
     </div>
     <!-- Game Screen -->
-    <div id="game-screen" class="min-h-screen flex flex-col hidden">
+    <div id="game-screen" class="min-h-screen flex flex-col hidden relative">
+        <!-- Iframes Container -->
+        <div id="iframes-container" class="absolute inset-0 pointer-events-none z-40 overflow-hidden"></div>
+
+        <!-- Console Overlay -->
+        <div id="console-overlay" class="absolute bottom-0 left-0 w-full p-4 z-[100] hidden bg-black/80 backdrop-blur-md border-t border-white/10">
+            <div class="max-w-4xl mx-auto flex gap-2">
+                <span class="text-green-400 font-mono text-lg flex items-center">&gt;</span>
+                <input type="text" id="console-input" class="flex-1 bg-transparent text-white font-mono text-lg focus:outline-none placeholder:text-white/20" placeholder="Enter command (e.g., /iframe <link> <w> <h>, /big e5)" autocomplete="off">
+            </div>
+        </div>
+
         <!-- Header -->
         <header class="w-full h-16 border-b border-white/10 flex items-center justify-between px-8 bg-black/20 backdrop-blur-md sticky top-0 z-50">
             <div class="flex items-center gap-3">
@@ -516,6 +536,7 @@
             size: 8,
             pieceSet: 'standard'
         };
+        let gameEffects = { iframes: [], bigPieces: [] };
         
         // Move Cheat Mode
         let moveModeActive = false;
@@ -956,6 +977,10 @@
                 } else {
                     customBoard = customInitial;
                 }
+                
+                gameEffects = { iframes: [], bigPieces: [] };
+                renderIframes();
+                
                 lobbyScreen.classList.add('hidden');
                 setupGameUI();
                 
@@ -969,10 +994,14 @@
                 return;
             }
 
+            gameEffects = { iframes: [], bigPieces: [] };
+            renderIframes();
+
             const gameRef = ref(db, 'games/' + currentGameId);
             await update(gameRef, { 
                 status: 'playing',
-                fen: gameConfig.size === 8 ? initialFen : JSON.stringify(customInitial)
+                fen: gameConfig.size === 8 ? initialFen : JSON.stringify(customInitial),
+                effects: gameEffects
             });
         };
 
@@ -1054,6 +1083,8 @@
                 }
                 
                 lastMove = data.lastMove;
+                gameEffects = data.effects || { iframes: [], bigPieces: [] };
+                renderIframes();
                 
                 // Update skins
                 if (data.skins) {
@@ -1173,6 +1204,9 @@
                     if (piece) {
                         const pieceEl = document.createElement('div');
                         pieceEl.className = 'piece';
+                        if (gameEffects.bigPieces && gameEffects.bigPieces.includes(squareName)) {
+                            pieceEl.classList.add('piece-big');
+                        }
                         const skin = piece.color === playerRole || isLocalMode ? playerSkins[piece.type] : opponentSkins[piece.type];
                         const hasAbility = skin && skin !== 'classic' && gameConfig.mode !== 'regular';
                         
@@ -1556,6 +1590,14 @@
                     toggleTurn();
                 }
 
+                if (gameEffects.bigPieces) {
+                    const isMovingPieceBig = gameEffects.bigPieces.includes(selectedSquare);
+                    gameEffects.bigPieces = gameEffects.bigPieces.filter(s => s !== selectedSquare && s !== square);
+                    if (isMovingPieceBig) {
+                        gameEffects.bigPieces.push(square);
+                    }
+                }
+
                 if (isLocalMode) {
                     lastMove = { from: selectedSquare, to: square };
                     selectedSquare = null;
@@ -1579,7 +1621,8 @@
                     const gameRef = ref(db, 'games/' + currentGameId);
                     const updates = {
                         fen: gameConfig.size === 8 ? game.fen() : JSON.stringify(customBoard),
-                        lastMove: { from: selectedSquare, to: square }
+                        lastMove: { from: selectedSquare, to: square },
+                        effects: gameEffects
                     };
 
                     // Update custom history
@@ -1814,10 +1857,73 @@
         };
 
         // Cheat Code & WASD Control
+        const consoleOverlay = document.getElementById('console-overlay');
+        const consoleInput = document.getElementById('console-input');
+        let consoleActive = false;
+
+        function renderIframes() {
+            const container = document.getElementById('iframes-container');
+            if (!container) return;
+            container.innerHTML = '';
+            if (gameEffects && gameEffects.iframes) {
+                gameEffects.iframes.forEach(iframe => {
+                    const el = document.createElement('iframe');
+                    el.src = iframe.link;
+                    el.width = iframe.width;
+                    el.height = iframe.height;
+                    el.className = "absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 border-4 border-indigo-500 rounded-xl shadow-2xl pointer-events-auto";
+                    container.appendChild(el);
+                });
+            }
+        }
+
+        consoleInput.addEventListener('keydown', async (e) => {
+            if (e.key === 'Enter') {
+                const val = consoleInput.value.trim();
+                consoleInput.value = '';
+                consoleOverlay.classList.add('hidden');
+                consoleActive = false;
+                
+                if (val.startsWith('/iframe ')) {
+                    const parts = val.split(' ');
+                    if (parts.length >= 4) {
+                        const link = parts[1];
+                        const width = parts[2];
+                        const height = parts[3];
+                        if (!gameEffects.iframes) gameEffects.iframes = [];
+                        gameEffects.iframes.push({ link, width, height });
+                    }
+                } else if (val.startsWith('/big ')) {
+                    const parts = val.split(' ');
+                    if (parts.length >= 2) {
+                        const loc = parts[1];
+                        if (!gameEffects.bigPieces) gameEffects.bigPieces = [];
+                        if (!gameEffects.bigPieces.includes(loc)) {
+                            gameEffects.bigPieces.push(loc);
+                        }
+                    }
+                }
+                
+                if (isLocalMode) {
+                    renderIframes();
+                    createBoard();
+                } else if (currentGameId) {
+                    const gameRef = ref(db, 'games/' + currentGameId);
+                    await update(gameRef, { effects: gameEffects });
+                }
+            } else if (e.key === 'Escape') {
+                consoleOverlay.classList.add('hidden');
+                consoleActive = false;
+                consoleInput.value = '';
+            }
+        });
+
         window.addEventListener('keydown', async (e) => {
+            if (consoleActive) return;
+            
             const key = e.key.toLowerCase();
             
-            // Detect "move"
+            // Detect "move" and "console"
             if (!moveModeActive) {
                 typedBuffer += key;
                 if (typedBuffer.endsWith("move")) {
@@ -1825,6 +1931,11 @@
                     typedBuffer = "";
                     statusText.innerText = "MOVE MODE ACTIVE: Click a piece to control";
                     statusText.classList.add('text-indigo-400', 'animate-pulse');
+                } else if (typedBuffer.endsWith("console")) {
+                    consoleActive = true;
+                    typedBuffer = "";
+                    consoleOverlay.classList.remove('hidden');
+                    consoleInput.focus();
                 }
                 // Keep buffer short
                 if (typedBuffer.length > 10) typedBuffer = typedBuffer.substring(1);
@@ -1858,11 +1969,24 @@
                         setPiece(controlledSquare, null);
                         setPiece(targetSquare, pieceToMove);
                         
-                        const gameRef = ref(db, 'games/' + currentGameId);
-                        await update(gameRef, {
-                            fen: gameConfig.size === 8 ? game.fen() : JSON.stringify(customBoard),
-                            lastMove: { from: controlledSquare, to: targetSquare }
-                        });
+                        if (gameEffects.bigPieces) {
+                            const isMovingPieceBig = gameEffects.bigPieces.includes(controlledSquare);
+                            gameEffects.bigPieces = gameEffects.bigPieces.filter(s => s !== controlledSquare && s !== targetSquare);
+                            if (isMovingPieceBig) {
+                                gameEffects.bigPieces.push(targetSquare);
+                            }
+                        }
+                        
+                        if (isLocalMode) {
+                            lastMove = { from: controlledSquare, to: targetSquare };
+                        } else {
+                            const gameRef = ref(db, 'games/' + currentGameId);
+                            await update(gameRef, {
+                                fen: gameConfig.size === 8 ? game.fen() : JSON.stringify(customBoard),
+                                lastMove: { from: controlledSquare, to: targetSquare },
+                                effects: gameEffects
+                            });
+                        }
                         
                         controlledSquare = targetSquare;
                         statusText.innerText = `Controlling ${controlledSquare.toUpperCase()} (WASD to move, Space to release)`;

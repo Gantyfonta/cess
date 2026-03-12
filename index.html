@@ -881,9 +881,9 @@
             } else {
                 // Joining existing game
                 const data = snapshot.val();
-                if (data.players.white === playerId) {
+                if (data && data.players && data.players.white === playerId) {
                     playerRole = 'w';
-                } else if (!data.players.black || data.players.black === playerId) {
+                } else if (!data || !data.players || !data.players.black || data.players.black === playerId) {
                     await update(gameRef, {
                         'players/black': playerId,
                         [`skins/${playerId}`]: playerSkins,
@@ -910,7 +910,7 @@
                 gameConfig = data.config || gameConfig;
                 updateLobbyUI();
 
-                if (data.players.black) {
+                if (data.players && data.players.black) {
                     lobbyStatus.innerText = "Opponent joined! Ready to start.";
                     lobbyStatus.className = "text-center py-2 px-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-xs font-bold text-emerald-400";
                     
@@ -1117,7 +1117,7 @@
                 }
                 
                 // Update opponent status
-                if (data.players.white && data.players.black) {
+                if (data.players && data.players.white && data.players.black) {
                     opponentStatusText.innerText = 'Online';
                     opponentStatusText.className = 'font-bold text-emerald-400';
                 } else {
@@ -1125,8 +1125,8 @@
                     opponentStatusText.className = 'font-bold text-amber-400';
                     
                     // Forfeit logic: if we are playing and opponent is gone
-                    if (data.status === 'playing' && (!data.players.white || !data.players.black)) {
-                        const winner = data.players.white ? 'w' : 'b';
+                    if (data.status === 'playing' && (!data.players || !data.players.white || !data.players.black)) {
+                        const winner = (data.players && data.players.white) ? 'w' : 'b';
                         showGameOver(winner, 'Opponent disconnected');
                         return;
                     }

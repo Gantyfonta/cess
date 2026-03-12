@@ -527,6 +527,10 @@
 
     <!-- Firebase SDK -->
     <script type="module">
+        const manaCountEl = document.getElementById('mana-count');
+        const manaDotsEl = document.getElementById('mana-bar');
+        const abilitiesListEl = document.getElementById('abilities-list');
+
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 

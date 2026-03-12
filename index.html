@@ -48,6 +48,25 @@
         .square.last-move { background-color: rgba(255, 255, 255, 0.1) !important; }
         .square.check { background-color: rgba(239, 68, 68, 0.4) !important; box-shadow: inset 0 0 30px rgba(239, 68, 68, 0.6); }
         
+        .move-indicator {
+            width: 14px;
+            height: 14px;
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10;
+        }
+        .square.dark .move-indicator { background: rgba(255, 255, 255, 0.2); }
+        .square.light .move-indicator { background: rgba(0, 0, 0, 0.15); }
+        .move-indicator.capture {
+            width: 80%;
+            height: 80%;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            background: transparent;
+            border-radius: 50%;
+        }
+        .square.dark .move-indicator.capture { border-color: rgba(255, 255, 255, 0.2); }
+        
         .mana-dot {
             width: 12px;
             height: 12px;
@@ -532,7 +551,7 @@
         const abilitiesListEl = document.getElementById('abilities-list');
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, get, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDvU2DH8o3baDrRPmihP45R39OtSjhk2aA",
@@ -750,6 +769,37 @@
         const modal = document.getElementById('game-over-modal');
         const modalTitle = document.getElementById('modal-title');
         const modalBody = document.getElementById('modal-body');
+
+        // Lobby & Presence Logic
+        let lastOtherPlayerState = null;
+        async function deleteLobby() {
+            if (!currentGameId) return;
+            const gameRef = ref(db, 'games/' + currentGameId);
+            await remove(gameRef);
+            currentGameId = null;
+        }
+
+        function updatePresence(data) {
+            if (!data || !currentGameId || !playerRole) return;
+            const otherRole = playerRole === 'w' ? 'black' : 'white';
+            const otherPresent = !!(data.players && data.players[otherRole]);
+            
+            if (otherPresent === lastOtherPlayerState) return;
+            lastOtherPlayerState = otherPresent;
+
+            const gameRef = ref(db, 'games/' + currentGameId);
+            const myRole = playerRole === 'w' ? 'white' : 'black';
+            const myPlayerRef = ref(db, `games/${currentGameId}/players/${myRole}`);
+            
+            onDisconnect(gameRef).cancel();
+            onDisconnect(myPlayerRef).cancel();
+
+            if (!otherPresent) {
+                onDisconnect(gameRef).remove();
+            } else {
+                onDisconnect(myPlayerRef).set(null);
+            }
+        }
 
         // Multiplayer Logic
         async function createGame() {
@@ -974,6 +1024,7 @@
             }
             
             showLobby();
+            lastOtherPlayerState = null; // Reset presence state
             listenToLobby();
         };
 
@@ -981,8 +1032,15 @@
             const gameRef = ref(db, 'games/' + currentGameId);
             onValue(gameRef, (snapshot) => {
                 const data = snapshot.val();
-                if (!data) return;
+                if (!data) {
+                    if (!lobbyScreen.classList.contains('hidden')) {
+                        alert("Lobby was closed.");
+                        location.reload();
+                    }
+                    return;
+                }
 
+                updatePresence(data);
                 gameConfig = data.config || gameConfig;
                 updateLobbyUI();
 
@@ -1114,7 +1172,25 @@
             const gameRef = ref(db, 'games/' + currentGameId);
             onValue(gameRef, (snapshot) => {
                 const data = snapshot.val();
-                if (!data) return;
+                if (!data) {
+                    if (!gameScreen.classList.contains('hidden')) {
+                        alert("Game was closed.");
+                        location.reload();
+                    }
+                    return;
+                }
+
+                updatePresence(data);
+
+                // Forfeit logic
+                if (data.status === 'playing') {
+                    const otherRole = playerRole === 'w' ? 'black' : 'white';
+                    if (data.players && !data.players[otherRole]) {
+                        showGameOverModal("Opponent Forfeited", "The other player has left the match. You win!");
+                        deleteLobby();
+                        return;
+                    }
+                }
 
                 gameConfig = data.config || gameConfig;
                 
@@ -1403,6 +1479,8 @@
             const squareNames = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'];
             const isFlipped = playerRole === 'b' && !isLocalMode;
 
+            const validMoves = selectedSquare ? getLegalMoves(selectedSquare) : [];
+
             for (let r = 0; r < size; r++) {
                 const row = isFlipped ? size - 1 - r : r;
                 for (let c = 0; c < size; c++) {
@@ -1481,6 +1559,16 @@
                         const wall = document.createElement('div');
                         wall.className = 'wall-piece';
                         squareEl.appendChild(wall);
+                    }
+
+                    // Move Indicators
+                    if (selectedSquare) {
+                        const move = validMoves.find(m => m.to === squareName);
+                        if (move) {
+                            const indicator = document.createElement('div');
+                            indicator.className = `move-indicator ${getPiece(squareName) ? 'capture' : ''}`;
+                            squareEl.appendChild(indicator);
+                        }
                     }
 
                     boardEl.appendChild(squareEl);

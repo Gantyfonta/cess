@@ -392,7 +392,7 @@
     <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update, get } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
+        import { getDatabase, ref, set, onValue, update, get, onDisconnect, remove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyDvU2DH8o3baDrRPmihP45R39OtSjhk2aA",
@@ -789,6 +789,11 @@
                     createdAt: Date.now()
                 });
                 playerRole = 'w';
+                
+                // Lobby deletion if creator leaves before anyone joins
+                const disconnectRef = onDisconnect(gameRef);
+                disconnectRef.remove();
+                window.gameDeletionDisconnect = disconnectRef;
             } else {
                 // Joining existing game
                 const data = snapshot.val();
@@ -802,6 +807,9 @@
                         status: 'lobby'
                     });
                     playerRole = 'b';
+                    
+                    // Set disconnect for black player
+                    onDisconnect(ref(db, `games/${currentGameId}/players/black`)).set(null);
                 }
             }
             
@@ -821,6 +829,15 @@
                 if (data.players.black) {
                     lobbyStatus.innerText = "Opponent joined! Ready to start.";
                     lobbyStatus.className = "text-center py-2 px-4 bg-emerald-500/10 rounded-xl border border-emerald-500/20 text-xs font-bold text-emerald-400";
+                    
+                    // Cancel game deletion if someone joined
+                    if (window.gameDeletionDisconnect) {
+                        window.gameDeletionDisconnect.cancel();
+                        window.gameDeletionDisconnect = null;
+                        // Set disconnect for white player slot instead
+                        onDisconnect(ref(db, `games/${currentGameId}/players/white`)).set(null);
+                    }
+
                     if (playerRole === 'w') {
                         lobbyStartBtn.disabled = false;
                         lobbyStartBtn.className = "w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-emerald-500/20";
@@ -992,6 +1009,19 @@
                 } else {
                     opponentStatusText.innerText = 'Waiting...';
                     opponentStatusText.className = 'font-bold text-amber-400';
+                    
+                    // Forfeit logic: if we are playing and opponent is gone
+                    if (data.status === 'playing' && (!data.players.white || !data.players.black)) {
+                        const winner = data.players.white ? 'w' : 'b';
+                        showGameOver(winner, 'Opponent disconnected');
+                        return;
+                    }
+                }
+
+                // Set forfeit on disconnect when playing
+                if (data.status === 'playing') {
+                    const myPlayerRef = ref(db, `games/${currentGameId}/players/${playerRole === 'w' ? 'white' : 'black'}`);
+                    onDisconnect(myPlayerRef).set(null);
                 }
 
                 createBoard();
@@ -1428,12 +1458,18 @@
                 const standardMoves = gameConfig.size === 8 ? game.moves({ square: selectedSquare, verbose: true }) : [];
                 const isSpecial = !standardMoves.find(m => m.to === square);
                 const pieceToMove = getPiece(selectedSquare);
+                if (!pieceToMove) return;
                 const targetPiece = getPiece(square);
                 
                 let moveSan = "";
                 if (gameConfig.size === 8 && !isSpecial) {
                     const m = game.move({ from: selectedSquare, to: square, promotion: 'q' });
-                    moveSan = m.san;
+                    if (m) {
+                        moveSan = m.san;
+                    } else {
+                        console.error("Illegal move according to chess.js");
+                        return;
+                    }
                 } else {
                     // Manual move SAN
                     const pieceChar = pieceToMove.type === 'p' ? '' : pieceToMove.type.toUpperCase();
@@ -1464,8 +1500,15 @@
                         const capturedRef = ref(db, `games/${currentGameId}/captured`);
                         const capturedSnap = await get(capturedRef);
                         const captured = capturedSnap.val() || { w: [], b: [] };
-                        captured[targetPiece.color].push(targetPiece.type);
-                        updates.captured = captured;
+                        
+                        // Safety check for captured structure
+                        if (!captured.w) captured.w = [];
+                        if (!captured.b) captured.b = [];
+                        
+                        if (targetPiece.color && captured[targetPiece.color]) {
+                            captured[targetPiece.color].push(targetPiece.type);
+                            updates.captured = captured;
+                        }
                     }
 
                     await update(gameRef, updates);
@@ -1602,12 +1645,16 @@
             moveHistoryEl.scrollTop = moveHistoryEl.scrollHeight;
         }
 
-        function showGameOver() {
+        function showGameOver(forcedWinner = null, reason = null) {
             modal.classList.remove('hidden');
             let score = 0.5;
-            let resultText = "";
+            let resultText = reason || "The match has concluded.";
 
-            if (gameConfig.size !== 8 && gameConfig.size !== 8.1) {
+            if (forcedWinner) {
+                modalTitle.innerText = reason ? 'Game Over' : 'Victory!';
+                resultText = reason ? `${forcedWinner === 'w' ? 'White' : 'Black'} wins (${reason})` : `${forcedWinner === 'w' ? 'White' : 'Black'} wins the game.`;
+                score = playerRole === forcedWinner ? 1 : 0;
+            } else if (gameConfig.size !== 8 && gameConfig.size !== 8.1) {
                 const pieces = Object.values(customBoard || {});
                 const whiteKing = pieces.find(p => p && p.type === 'k' && p.color === 'w');
                 const blackKing = pieces.find(p => p && p.type === 'k' && p.color === 'b');
@@ -1643,6 +1690,8 @@
                 const newElo = playerElo + change;
                 const diff = Math.round(change);
                 const diffText = diff >= 0 ? `+${diff}` : `${diff}`;
+                
+                update(ref(db, 'games/' + currentGameId), { status: 'finished' });
                 
                 modalBody.innerHTML = `
                     <p class="text-white/70 mb-4">${resultText}</p>

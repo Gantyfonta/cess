@@ -156,21 +156,23 @@
                 Customize Piece Skins
             </button>
 
-            <div class="relative py-4">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-white/10"></div>
+            <div id="join-section">
+                <div class="relative py-4">
+                    <div class="absolute inset-0 flex items-center">
+                        <div class="w-full border-t border-white/10"></div>
+                    </div>
+                    <div class="relative flex justify-center text-xs uppercase">
+                        <span class="bg-[#1a1a1a] px-2 text-white/30">Or Join Game</span>
+                    </div>
                 </div>
-                <div class="relative flex justify-center text-xs uppercase">
-                    <span class="bg-[#1a1a1a] px-2 text-white/30">Or Join Game</span>
+
+                <div class="flex gap-2">
+                    <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
+
+                    <button id="join-game-btn" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
+                        Join
+                    </button>
                 </div>
-            </div>
-
-            <div class="flex gap-2">
-                <input type="text" id="join-game-id" placeholder="Enter Game ID" class="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/50">
-
-                <button id="join-game-btn" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all border border-white/10">
-                    Join
-                </button>
             </div>
 
         </div>
@@ -508,6 +510,7 @@
         let isConfiguringLoadout = false;
         
         // Game Configuration
+        let isLocalMode = false;
         let gameConfig = {
             mode: 'custom',
             size: 8,
@@ -562,6 +565,10 @@
         const customSettings = document.getElementById('custom-settings');
         const modeRegularBtn = document.getElementById('mode-regular-btn');
         const modeCustomBtn = document.getElementById('mode-custom-btn');
+        const modeOnlineToggle = document.getElementById('mode-online-toggle');
+        const modeLocalToggle = document.getElementById('mode-local-toggle');
+        const startBtnText = document.getElementById('start-btn-text');
+        const joinSection = document.getElementById('join-section');
         const loadoutBackBtn = document.getElementById('loadout-back-btn');
         const loadoutTitle = document.getElementById('loadout-title');
         const loadoutSubtitle = document.getElementById('loadout-subtitle');
@@ -584,8 +591,35 @@
         const modalBody = document.getElementById('modal-body');
 
         // Multiplayer Logic
+        modeOnlineToggle.onclick = () => {
+            isLocalMode = false;
+            modeOnlineToggle.classList.add('bg-indigo-500', 'text-white', 'border-indigo-400');
+            modeOnlineToggle.classList.remove('bg-white/5', 'text-white/60', 'border-white/10');
+            modeLocalToggle.classList.add('bg-white/5', 'text-white/60', 'border-white/10');
+            modeLocalToggle.classList.remove('bg-indigo-500', 'text-white', 'border-indigo-400');
+            startBtnText.innerText = "Create New Game";
+            joinSection.classList.remove('hidden');
+        };
+
+        modeLocalToggle.onclick = () => {
+            isLocalMode = true;
+            modeLocalToggle.classList.add('bg-indigo-500', 'text-white', 'border-indigo-400');
+            modeLocalToggle.classList.remove('bg-white/5', 'text-white/60', 'border-white/10');
+            modeOnlineToggle.classList.add('bg-white/5', 'text-white/60', 'border-white/10');
+            modeOnlineToggle.classList.remove('bg-indigo-500', 'text-white', 'border-indigo-400');
+            startBtnText.innerText = "Start Local Game";
+            joinSection.classList.add('hidden');
+        };
+
         async function createGame() {
             try {
+                if (isLocalMode) {
+                    currentGameId = "LOCAL";
+                    playerRole = 'w';
+                    isConfiguringLoadout = false;
+                    showLoadout();
+                    return;
+                }
                 const gameId = Math.random().toString(36).substring(2, 8).toUpperCase();
                 currentGameId = gameId;
                 isConfiguringLoadout = false;
@@ -673,7 +707,17 @@
         function updateLobbyUI() {
             // Update Room Code
             const lobbyIdDisplay = document.getElementById('lobby-game-id');
-            if (lobbyIdDisplay) lobbyIdDisplay.innerText = currentGameId;
+            if (lobbyIdDisplay) lobbyIdDisplay.innerText = isLocalMode ? "LOCAL" : currentGameId;
+
+            if (isLocalMode) {
+                lobbyStatus.innerText = "Local Mode: Configure your match settings.";
+                lobbyStatus.className = "text-center py-2 px-4 bg-indigo-500/10 rounded-xl border border-indigo-500/20 text-xs font-bold text-indigo-400";
+                lobbyStartBtn.disabled = false;
+                lobbyStartBtn.innerText = "Start Local Match";
+                lobbyStartBtn.className = "w-full py-4 bg-indigo-500 hover:bg-indigo-600 text-white font-bold rounded-2xl transition-all shadow-lg shadow-indigo-500/20";
+            } else {
+                lobbyStartBtn.innerText = "Start Game";
+            }
 
             // Mode buttons
             modeRegularBtn.classList.toggle('active-mode', gameConfig.mode === 'regular');
@@ -733,28 +777,33 @@
         window.setBoardSize = (size) => {
             if (playerRole !== 'w') return;
             gameConfig.size = size;
-            updateLobbyInFirebase();
+            updateLobbyUI();
+            if (!isLocalMode) updateLobbyInFirebase();
         };
 
         window.setPieceSet = (set) => {
             if (playerRole !== 'w') return;
             gameConfig.pieceSet = set;
-            updateLobbyInFirebase();
+            updateLobbyUI();
+            if (!isLocalMode) updateLobbyInFirebase();
         };
 
         modeRegularBtn.onclick = () => {
             if (playerRole !== 'w') return;
             gameConfig.mode = 'regular';
-            updateLobbyInFirebase();
+            updateLobbyUI();
+            if (!isLocalMode) updateLobbyInFirebase();
         };
 
         modeCustomBtn.onclick = () => {
             if (playerRole !== 'w') return;
             gameConfig.mode = 'custom';
-            updateLobbyInFirebase();
+            updateLobbyUI();
+            if (!isLocalMode) updateLobbyInFirebase();
         };
 
         async function updateLobbyInFirebase() {
+            if (isLocalMode) return;
             const gameRef = ref(db, 'games/' + currentGameId);
             await update(gameRef, { config: gameConfig });
         }
@@ -763,6 +812,12 @@
             if (isConfiguringLoadout) {
                 loadoutScreen.classList.add('hidden');
                 titleScreen.classList.remove('hidden');
+                return;
+            }
+
+            if (isLocalMode) {
+                playerRole = 'w';
+                showLobby();
                 return;
             }
 
@@ -895,6 +950,25 @@
                 customInitial = board;
             }
             
+            if (isLocalMode) {
+                if (gameConfig.size === 8) {
+                    game.load(initialFen);
+                } else {
+                    customBoard = customInitial;
+                }
+                lobbyScreen.classList.add('hidden');
+                setupGameUI();
+                
+                // Local specific UI
+                displayGameId.innerText = "LOCAL";
+                playerRoleText.innerText = "Local 1v1";
+                playerRoleIcon.innerText = "⚔️";
+                opponentStatusText.innerText = "Offline";
+                
+                createBoard();
+                return;
+            }
+
             const gameRef = ref(db, 'games/' + currentGameId);
             await update(gameRef, { 
                 status: 'playing',
@@ -913,6 +987,7 @@
 
         async function joinGame(gameId) {
             gameId = gameId.toUpperCase();
+            isLocalMode = false;
             const gameRef = ref(db, 'games/' + gameId);
             const snapshot = await get(gameRef);
 
@@ -1098,7 +1173,7 @@
                     if (piece) {
                         const pieceEl = document.createElement('div');
                         pieceEl.className = 'piece';
-                        const skin = piece.color === playerRole ? playerSkins[piece.type] : opponentSkins[piece.type];
+                        const skin = piece.color === playerRole || isLocalMode ? playerSkins[piece.type] : opponentSkins[piece.type];
                         const hasAbility = skin && skin !== 'classic' && gameConfig.mode !== 'regular';
                         
                         pieceEl.innerHTML = `
@@ -1118,8 +1193,8 @@
                         squareEl.appendChild(pieceEl);
                     }
 
-                    if (selectedSquare && getTurn() === playerRole) {
-                        const moves = getLegalMoves(selectedSquare);
+                    if (selectedSquare && (isLocalMode || getTurn() === playerRole)) {
+                        const moves = getLegalMoves(selectedSquare, isLocalMode ? getTurn() : playerRole);
                         const move = moves.find(m => m.to === squareName);
                         if (move) {
                             const indicator = document.createElement('div');
@@ -1436,12 +1511,12 @@
         }
 
         async function handleSquareClick(square) {
-            if (getTurn() !== playerRole) return;
+            if (!isLocalMode && getTurn() !== playerRole) return;
 
             // Move Mode Logic
             if (moveModeActive) {
                 const piece = getPiece(square);
-                if (piece && piece.color === playerRole) {
+                if (piece && (isLocalMode || piece.color === playerRole)) {
                     controlledSquare = square;
                     statusText.innerText = `Controlling ${square.toUpperCase()} (WASD to move, Space to release)`;
                     createBoard();
@@ -1450,7 +1525,7 @@
             }
 
             const piece = getPiece(square);
-            const moves = getLegalMoves(selectedSquare);
+            const moves = getLegalMoves(selectedSquare, isLocalMode ? getTurn() : playerRole);
             const move = moves.find(m => m.to === square);
 
             if (move) {
@@ -1479,6 +1554,25 @@
                     setPiece(selectedSquare, null);
                     setPiece(square, pieceToMove);
                     toggleTurn();
+                }
+
+                if (isLocalMode) {
+                    lastMove = { from: selectedSquare, to: square };
+                    selectedSquare = null;
+                    createBoard();
+                    updateStatus();
+                    
+                    // Update local history
+                    const historyEl = document.createElement('div');
+                    historyEl.className = 'text-sm text-white/60 flex gap-2';
+                    historyEl.innerHTML = `<span class="font-mono text-white">${moveSan}</span>`;
+                    moveHistoryEl.appendChild(historyEl);
+                    moveHistoryEl.scrollTop = moveHistoryEl.scrollHeight;
+
+                    if (targetPiece) {
+                        // Update captured pieces locally if needed
+                    }
+                    return;
                 }
 
                 try {
@@ -1515,7 +1609,7 @@
                     selectedSquare = null;
                 } catch (e) { console.error(e); }
             } else {
-                if (piece && piece.color === playerRole) {
+                if (piece && (isLocalMode || piece.color === playerRole)) {
                     selectedSquare = square;
                 } else {
                     selectedSquare = null;
